@@ -3,28 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BECT - Connexion</title>
+  <title>BECT - Inscription</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="auth-container">
-  <h2>Connexion</h2>
-  <form id="login-form">
+  <h2>Inscription</h2>
+  <form id="register-form">
     <input type="text" id="username" placeholder="Nom d'utilisateur" required>
     <input type="password" id="password" placeholder="Mot de passe" required>
-    <button type="submit">Se connecter</button>
+    <button type="submit">S'inscrire</button>
   </form>
-  <p>Pas encore inscrit ? <a href="inscription.html">S'inscrire</a></p>
+  <p>Déjà inscrit ? <a href="connexion.html">Se connecter</a></p>
 </div>
 
 <script>
-document.getElementById('login-form').addEventListener('submit', async (e) => {
+document.getElementById('register-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const username = document.getElementById('username').value;
   const password = document.getElementById('password').value;
 
   try {
-    const res = await fetch('https://bect-project.onrender.com/api/login', {
+    const res = await fetch('https://bect-project.onrender.com/api/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
@@ -32,12 +32,8 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     const data = await res.json();
 
     if(data.success){
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('username', data.username);
-      localStorage.setItem('role', data.role);
-      // Si admin, redirection vers admin
-      if(data.role === 'admin') window.location.href = 'admin.html';
-      else window.location.href = 'index.html';
+      alert('Inscription réussie ! Connectez-vous.');
+      window.location.href = 'connexion.html';
     } else {
       alert(data.message);
     }

@@ -3,16 +3,84 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin BECT</title>
+  <title>BECT - Admin</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main>
-    <h2>Administration</h2>
-    <div id="admin-levels-container" class="levels-grid"></div>
-    <div id="admin-users-container"></div>
-  </main>
+<header>
+  <h1>Admin BECT</h1>
+  <button id="logout-btn">Déconnexion</button>
+</header>
 
-  <script src="script.js" defer></script>
+<main>
+  <h2>Liste des utilisateurs</h2>
+  <div id="users-container"></div>
+</main>
+
+<script>
+const token = localStorage.getItem('token');
+const role = localStorage.getItem('role');
+
+// Vérifier clé admin
+if(!token || role !== 'admin'){
+  alert("Accès admin requis !");
+  window.location.href = 'connexion.html';
+}
+
+// Déconnexion
+document.getElementById('logout-btn').addEventListener('click', () => {
+  localStorage.clear();
+  window.location.href = 'connexion.html';
+});
+
+// Récupérer tous les utilisateurs
+async function fetchUsers(){
+  try {
+    const res = await fetch('https://bect-project.onrender.com/api/admin/users', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    const container = document.getElementById('users-container');
+    container.innerHTML = '';
+
+    if(data.success && data.users.length){
+      data.users.forEach(u => {
+        const div = document.createElement('div');
+        div.className = 'user-card';
+        div.innerHTML = `
+          <span>${u.username}</span>
+          <button onclick="deleteUser('${u._id}')">Supprimer</button>
+        `;
+        container.appendChild(div);
+      });
+    } else {
+      container.innerHTML = "<p>Aucun utilisateur trouvé</p>";
+    }
+  } catch(err){
+    console.error(err);
+    alert('Erreur serveur');
+  }
+}
+
+async function deleteUser(id){
+  if(!confirm("Supprimer cet utilisateur ?")) return;
+  try {
+    const res = await fetch(`https://bect-project.onrender.com/api/admin/users/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if(data.success){
+      alert('Utilisateur supprimé !');
+      fetchUsers();
+    } else alert(data.message);
+  } catch(err){
+    console.error(err);
+    alert('Erreur serveur');
+  }
+}
+
+fetchUsers();
+</script>
 </body>
 </html>

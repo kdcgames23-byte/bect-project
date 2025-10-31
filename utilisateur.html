@@ -3,22 +3,74 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Profil utilisateur</title>
+  <title>BECT - Mon profil</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <h1>Mon Profil</h1>
+<header>
+  <h1>BECT</h1>
+  <div class="user-info">
+    <span id="username-display"></span>
     <button id="logout-btn">Déconnexion</button>
-  </header>
+  </div>
+</header>
 
-  <main>
-    <h2>Niveaux créés</h2>
-    <div id="user-levels-container" class="levels-grid">
-      <!-- Injecté par JS -->
-    </div>
-  </main>
+<main>
+  <h2>Mes niveaux</h2>
+  <div id="levels-container"></div>
+</main>
 
-  <script src="script.js" defer></script>
+<script>
+const token = localStorage.getItem('token');
+const username = localStorage.getItem('username');
+
+if(!token){
+  alert("Connectez-vous d'abord !");
+  window.location.href = 'connexion.html';
+} else {
+  document.getElementById('username-display').textContent = username;
+}
+
+// Déconnexion
+document.getElementById('logout-btn').addEventListener('click', () => {
+  localStorage.clear();
+  window.location.href = 'connexion.html';
+});
+
+// Afficher les niveaux
+async function fetchLevels(){
+  try {
+    const res = await fetch(`https://bect-project.onrender.com/api/user-levels?username=${username}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    const container = document.getElementById('levels-container');
+    container.innerHTML = '';
+
+    if(data.success && data.levels.length){
+      data.levels.forEach(level => {
+        const div = document.createElement('div');
+        div.className = 'level-card';
+        div.innerHTML = `
+          <h3>${level.name}</h3>
+          <div class="images">
+            ${level.images.map(img => `<img src="${img}" />`).join('')}
+          </div>
+          <p>${level.description}</p>
+          <a href="${level.json}" download="${level.name}.json"><button>Télécharger JSON</button></a>
+        `;
+        container.appendChild(div);
+      });
+    } else {
+      container.innerHTML = "<p>Aucun niveau publié. <a href='publier.html'>Créer un niveau</a></p>";
+    }
+  } catch(err){
+    console.error(err);
+    alert('Erreur serveur');
+  }
+}
+
+fetchLevels();
+</script>
 </body>
 </html>

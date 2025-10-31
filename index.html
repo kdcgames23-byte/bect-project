@@ -7,25 +7,96 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <h1>BECT</h1>
-    <div id="user-info">
-      <span id="username-display"></span>
-      <button id="logout-btn">Déconnexion</button>
-    </div>
-  </header>
+<header>
+  <h1>BECT</h1>
+  <div class="user-info" id="header-user">
+    <button onclick="window.location.href='connexion.html'">Se connecter</button>
+    <button onclick="window.location.href='inscription.html'">S'inscrire</button>
+  </div>
+</header>
 
-  <main>
-    <div class="search-bar">
-      <input type="text" id="search-input" placeholder="Rechercher un niveau ou créateur">
-      <button id="search-btn">🔍</button>
-    </div>
-    <div id="levels-container" class="levels-grid">
-      <!-- Les niveaux seront injectés ici par JS -->
-    </div>
-    <button id="publish-btn">Publier un niveau</button>
-  </main>
+<div class="container">
+  <input type="text" id="search" placeholder="Rechercher un niveau ou un créateur">
+  <div id="levels-container"></div>
+</div>
 
-  <script src="script.js" defer></script>
+<script>
+  // Vérifie si l'utilisateur est connecté
+  const token = localStorage.getItem('token');
+  const username = localStorage.getItem('username');
+  const headerUser = document.getElementById('header-user');
+
+  if(token && username){
+    headerUser.innerHTML = `
+      <span>${username}</span>
+      <button id="logout">Se déconnecter</button>
+    `;
+    document.getElementById('logout').addEventListener('click', () => {
+      localStorage.clear();
+      window.location.reload();
+    });
+  }
+
+  const levelsContainer = document.getElementById('levels-container');
+
+  // Charger les niveaux depuis le backend
+  async function loadLevels() {
+    try {
+      const res = await fetch('https://bect-project.onrender.com/api/levels');
+      const data = await res.json();
+      levelsContainer.innerHTML = '';
+      data.forEach(level => {
+        const card = document.createElement('div');
+        card.className = 'level-card';
+        card.innerHTML = `
+          <h3>${level.name}</h3>
+          <p>Créateur: <span class="level-creator" data-creator="${level.creator}">${level.creator}</span></p>
+          <img src="${level.images[0]}" alt="Image du niveau">
+          <button onclick="downloadJson('${level.jsonUrl}', '${level.name}.json')">Télécharger JSON</button>
+        `;
+        levelsContainer.appendChild(card);
+      });
+
+      document.querySelectorAll('.level-creator').forEach(el => {
+        el.addEventListener('click', () => {
+          window.location.href = `utilisateur.html?user=${el.dataset.creator}`;
+        });
+      });
+
+    } catch (err) {
+      console.error(err);
+      levelsContainer.innerHTML = '<p>Impossible de charger les niveaux.</p>';
+    }
+  }
+
+  loadLevels();
+
+  function downloadJson(url, filename) {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+  }
+
+  // Recherche
+  document.getElementById('search').addEventListener('input', async (e) => {
+    const query = e.target.value.toLowerCase();
+    const res = await fetch('https://bect-project.onrender.com/api/levels');
+    const data = await res.json();
+    const filtered = data.filter(l => l.name.toLowerCase().includes(query) || l.creator.toLowerCase().includes(query));
+    levelsContainer.innerHTML = '';
+    filtered.forEach(level => {
+      const card = document.createElement('div');
+      card.className = 'level-card';
+      card.innerHTML = `
+        <h3>${level.name}</h3>
+        <p>Créateur: <span class="level-creator" data-creator="${level.creator}">${level.creator}</span></p>
+        <img src="${level.images[0]}" alt="Image du niveau">
+        <button onclick="downloadJson('${level.jsonUrl}', '${level.name}.json')">Télécharger JSON</button>
+      `;
+      levelsContainer.appendChild(card);
+    });
+  });
+</script>
 </body>
 </html>

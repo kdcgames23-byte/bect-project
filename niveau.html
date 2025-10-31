@@ -3,18 +3,75 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Niveau</title>
+  <title>BECT - Niveau</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main id="level-page">
-    <h2 id="level-title"></h2>
-    <p id="level-desc"></p>
-    <div id="images-container"></div>
-    <p>Créateur : <span id="creator-name"></span></p>
-    <button id="download-json-btn">Télécharger JSON</button>
-  </main>
+<header>
+  <h1>BECT</h1>
+  <div class="user-info">
+    <span id="username-display"></span>
+    <button id="logout-btn">Déconnexion</button>
+  </div>
+</header>
 
-  <script src="script.js" defer></script>
+<main>
+  <div id="level-container"></div>
+</main>
+
+<script>
+const token = localStorage.getItem('token');
+const currentUser = localStorage.getItem('username');
+
+if(!token){
+  alert("Connectez-vous pour voir ce niveau !");
+  window.location.href = 'connexion.html';
+} else {
+  document.getElementById('username-display').textContent = currentUser;
+}
+
+// Déconnexion
+document.getElementById('logout-btn').addEventListener('click', () => {
+  localStorage.clear();
+  window.location.href = 'connexion.html';
+});
+
+// Récupérer l'id du niveau depuis l'URL
+const params = new URLSearchParams(window.location.search);
+const levelId = params.get('id');
+
+async function fetchLevel(){
+  try {
+    const res = await fetch(`https://bect-project.onrender.com/api/level/${levelId}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+
+    if(!data.success){
+      alert(data.message || "Niveau introuvable");
+      window.location.href = 'index.html';
+      return;
+    }
+
+    const lvl = data.level;
+    const container = document.getElementById('level-container');
+    container.innerHTML = `
+      <h2>${lvl.name}</h2>
+      <div class="images">
+        ${lvl.images.map(img => `<img src="${img}" alt="${lvl.name}" />`).join('')}
+      </div>
+      <p>${lvl.description}</p>
+      <p>Publié par <a href="utilisateur.html?username=${lvl.username}">${lvl.username}</a></p>
+      <a href="${lvl.json}" download="${lvl.name}.json"><button>Télécharger JSON</button></a>
+    `;
+
+  } catch(err){
+    console.error(err);
+    alert('Erreur serveur');
+  }
+}
+
+fetchLevel();
+</script>
 </body>
 </html>

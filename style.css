@@ -1,64 +1,158 @@
-body {
-  font-family: 'Segoe UI', sans-serif;
+/* === Global === */
+* {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
-  background-color: #f5f5f5;
-  color: #333;
+  font-family: 'Inter', sans-serif;
 }
 
+body {
+  background: #f4f6fa;
+  color: #333;
+  line-height: 1.6;
+}
+
+/* === Header === */
 header {
+  position: sticky;
+  top: 0;
+  background: #1f2937;
+  color: #fff;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #222;
-  color: #fff;
-  padding: 10px 20px;
+  padding: 15px 30px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  z-index: 1000;
 }
 
-header h1 { margin: 0; }
-#user-info { display: flex; gap: 10px; }
+header h1 {
+  font-size: 1.5rem;
+}
 
-main { padding: 20px; }
-
-.auth-container, .publish-container {
-  max-width: 400px;
-  margin: 50px auto;
-  background-color: #fff;
-  padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+header .user-info {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 15px;
 }
 
-input, textarea, button {
-  padding: 10px;
+header .user-info button {
+  background: #ef4444;
+  border: none;
+  padding: 8px 15px;
   border-radius: 5px;
-  border: 1px solid #ccc;
+  color: white;
+  cursor: pointer;
+  font-weight: 500;
+  transition: 0.3s;
+}
+
+header .user-info button:hover {
+  background: #dc2626;
+}
+
+/* === Container === */
+.container {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+/* === Forms === */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  background: #fff;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+}
+
+input, textarea {
+  padding: 12px 15px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  transition: all 0.3s;
+}
+
+input:focus, textarea:focus {
+  border-color: #3b82f6;
+  outline: none;
+  box-shadow: 0 0 5px rgba(59,130,246,0.3);
 }
 
 button {
-  cursor: pointer;
-  background-color: #222;
+  background: #3b82f6;
   color: #fff;
+  padding: 12px 20px;
   border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
   transition: 0.3s;
 }
 
 button:hover {
-  background-color: #555;
+  background: #2563eb;
 }
 
-.levels-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill,minmax(200px,1fr));
-  gap: 15px;
-}
-
+/* === Level Cards === */
 .level-card {
-  background-color: #fff;
-  padding: 10px;
-  border-radius: 8px;
-  box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.level-card img {
+  width: 100%;
+  border-radius: 10px;
+}
+
+.level-card h3 {
+  font-size: 1.2rem;
+  color: #1f2937;
+}
+
+.level-card p {
+  color: #4b5563;
+  font-size: 0.95rem;
+}
+
+/* === Admin Page Table === */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+table th, table td {
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+}
+
+table th {
+  background: #f3f4f6;
+}
+
+/* === Responsive === */
+@media (max-width: 768px) {
+  .container {
+    padding: 15px;
+  }
+
+  header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  header .user-info {
+    margin-top: 10px;
+  }
 }
