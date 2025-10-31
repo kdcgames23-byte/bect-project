@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Mon compte - BECT</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+<h1>Mon compte</h1>
+<button id="logoutBtn">Déconnexion</button>
+</header>
+
+<div class="container">
+<h2>Mes niveaux</h2>
+<div class="grid" id="userLevelsGrid"></div>
+<button onclick="window.location.href='publish.html'">Créer un niveau</button>
+</div>
+
+<script>
+const API_URL="https://TON_BACKEND_URL"; // Remplace par ton URL Vercel
+const token=localStorage.getItem("token");
+const username=localStorage.getItem("username");
+if(!token) window.location.href="login.html";
+
+document.getElementById("logoutBtn").addEventListener("click", ()=>{
+  localStorage.removeItem("token");
+  localStorage.removeItem("username");
+  window.location.href="login.html";
+});
+
+async function loadUserLevels(){
+  const res=await fetch(`${API_URL}/api/levels?creator=${username}`,{
+    headers:{Authorization:`Bearer ${token}`}
+  });
+  const levels=await res.json();
+  const grid=document.getElementById("userLevelsGrid");
+  grid.innerHTML="";
+  if(levels.length===0){ grid.innerHTML="<p>Vous n'avez encore créé aucun niveau.</p>"; return;}
+  levels.forEach(l=>{
+    const div=document.createElement("div");
+    div.className="card";
+    div.innerHTML=`<h3>${l.title}</h3>
+      <img src="${l.image_urls[0]||''}" alt="niveau">
+      <p>${l.description||''}</p>`;
+    grid.appendChild(div);
+  });
+}
+
+loadUserLevels();
+</script>
+</body>
+</html>
