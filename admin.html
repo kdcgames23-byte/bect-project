@@ -1,69 +1,13 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<title>Admin - BECT</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>Espace Admin</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header><h1>Admin Panel</h1></header>
-<div class="container">
-<input type="password" id="adminKey" placeholder="Entrez la clé admin">
-<button id="loginAdminBtn">Se connecter</button>
-
-<h2>Liste des niveaux</h2>
-<div class="grid" id="levelsGrid"></div>
-</div>
-
-<script>
-const API_URL="https://TON_BACKEND_URL"; // Remplace par ton URL Vercel
-let token=null;
-
-document.getElementById("loginAdminBtn").addEventListener("click", async ()=>{
-  const key=document.getElementById("adminKey").value;
-  if(!key) return alert("Entrez la clé");
-  // Ici on utilise un endpoint admin sur le backend pour valider la clé
-  const res=await fetch(`${API_URL}/api/admin/login`,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({adminKey:key})
-  });
-  const data=await res.json();
-  if(data.token){
-    token=data.token;
-    loadLevels();
-  } else alert("Clé invalide");
-});
-
-async function loadLevels(){
-  if(!token) return;
-  const res=await fetch(`${API_URL}/api/levels`,{
-    headers:{Authorization:`Bearer ${token}`}
-  });
-  const levels=await res.json();
-  const grid=document.getElementById("levelsGrid");
-  grid.innerHTML="";
-  levels.forEach(l=>{
-    const div=document.createElement("div");
-    div.className="card";
-    div.innerHTML=`<h3>${l.title}</h3><p>Créateur: ${l.creator}</p>
-      <img src="${l.image_urls[0]||''}" alt="niveau">
-      <p>${l.description||''}</p>
-      <button onclick="deleteLevel('${l.id}')">Supprimer</button>`;
-    grid.appendChild(div);
-  });
-}
-
-async function deleteLevel(id){
-  if(!token) return;
-  if(!confirm("Voulez-vous vraiment supprimer ce niveau ?")) return;
-  const res=await fetch(`${API_URL}/api/levels/${id}`,{
-    method:"DELETE",
-    headers:{Authorization:`Bearer ${token}`}
-  });
-  const data=await res.json();
-  if(data.ok) loadLevels(); else alert(data.error);
-}
-</script>
+  <h1>Bienvenue, Admin</h1>
+  <button id="logout">Déconnexion</button>
+  <script src="script.js"></script>
 </body>
 </html>
