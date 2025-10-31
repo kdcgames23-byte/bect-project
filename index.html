@@ -1,64 +1,30 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<title>Accueil - BECT</title>
-<link rel="stylesheet" href="style.css">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>BECT - Accueil</title>
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
 <header>
-<h1>BECT Levels</h1>
-<div id="userInfo">
-  <span id="usernameDisplay"></span>
-  <button id="logoutBtn">Déconnexion</button>
-</div>
+  <h1>BECT Levels</h1>
+  <div class="right">
+    <span id="userTop"></span>
+    <button id="loginBtn">Se connecter</button>
+    <button id="publishBtn">Publier un niveau</button>
+    <button id="adminBtn">Admin</button>
+  </div>
 </header>
 
-<div class="container">
-  <input type="text" id="searchInput" placeholder="Rechercher un niveau ou un créateur">
-  <button id="searchBtn">Rechercher</button>
-  <button onclick="window.location.href='publish.html'">Publier un niveau</button>
-  <div class="grid" id="levelsGrid"></div>
-</div>
+<main class="container">
+  <div class="searchRow">
+    <input id="searchInput" placeholder="Rechercher niveau ou créateur" />
+    <button id="searchBtn">Rechercher</button>
+  </div>
+  <div id="levelsGrid" class="grid"></div>
+</main>
 
-<script>
-const API_URL="https://TON_BACKEND_URL"; // Remplace par ton URL Vercel
-const token=localStorage.getItem("token");
-const username=localStorage.getItem("username");
-
-if(!token) window.location.href="login.html";
-
-document.getElementById("usernameDisplay").innerText=username;
-document.getElementById("logoutBtn").addEventListener("click", ()=>{
-  localStorage.removeItem("token");
-  localStorage.removeItem("username");
-  window.location.href="login.html";
-});
-
-async function loadLevels(query=""){
-  const res=await fetch(`${API_URL}/api/levels?q=${query}`,{
-    headers:{Authorization:`Bearer ${token}`}
-  });
-  const levels=await res.json();
-  const grid=document.getElementById("levelsGrid");
-  grid.innerHTML="";
-  if(levels.length===0){grid.innerHTML="<p>Aucun niveau trouvé</p>"; return;}
-  levels.forEach(l=>{
-    const div=document.createElement("div");
-    div.className="card";
-    div.innerHTML=`<h3>${l.title}</h3><p>Créateur: ${l.creator}</p>
-      <img src="${l.image_urls[0]||''}" alt="niveau">
-      <p>${l.description||''}</p>`;
-    grid.appendChild(div);
-  });
-}
-
-document.getElementById("searchBtn").addEventListener("click", ()=>{
-  const q=document.getElementById("searchInput").value;
-  loadLevels(q);
-});
-
-loadLevels();
-</script>
+<script type="module" src="script.js"></script>
 </body>
 </html>

@@ -1,13 +1,22 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Espace Admin</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Admin - BECT</title>
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Bienvenue, Admin</h1>
-  <button id="logout">Déconnexion</button>
-  <script src="script.js"></script>
+<header><h1>Admin Panel</h1></header>
+<main class="container">
+  <div>
+    <input id="adminKey" placeholder="Entrez la clé admin" />
+    <button id="adminLoginBtn">Se connecter (admin)</button>
+    <p id="adminMsg"></p>
+  </div>
+  <h2>Utilisateurs</h2>
+  <div id="usersList" class="grid"></div>
+</main>
+<script type="module" src="script.js"></script>
 </body>
 </html>
