@@ -33,15 +33,18 @@ cloudinary.v2.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// MongoDB
+// === MongoDB ===
 if (!process.env.MONGO_URI) {
-  console.error("❌ MONGO_URI is not set — set it in Render environment variables");
-  // exit so deploy will fail early
+  console.error("MONGO_URI non défini dans les variables d'environnement !");
   process.exit(1);
 }
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(()=>console.log("✅ MongoDB connected"))
-  .catch(err=>{ console.error("❌ MongoDB connection error:", err); process.exit(1); });
+
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log("MongoDB connecté"))
+.catch((err) => console.error("Erreur MongoDB :", err));
 
 // Schemas
 const userSchema = new mongoose.Schema({
