@@ -36,21 +36,21 @@ document.addEventListener("DOMContentLoaded", ()=>{
       userTopElem.innerHTML = `<a href="utilisateur.html">${username}</a> <button id="logoutBtn">Déconnexion</button>`;
       document.getElementById("logoutBtn").addEventListener("click", ()=>{
         clearAuth();
-        location.href = "connexion.html";
+        location.href = "login.html";
       });
     } else {
-      userTopElem.innerHTML = `<a href="connexion.html">Se connecter</a>`;
+      userTopElem.innerHTML = `<a href="login.html">Se connecter</a>`;
     }
   }
-  if (loginBtn) loginBtn.addEventListener("click", ()=> location.href = "connexion.html");
+  if (loginBtn) loginBtn.addEventListener("click", ()=> location.href = "login.html");
   if (publishBtn) publishBtn.addEventListener("click", ()=> {
-    if (!getToken()) return location.href = "connexion.html";
+    if (!getToken()) return location.href = "login.html";
     location.href = "publier.html";
   });
   if (adminBtn) adminBtn.addEventListener("click", ()=> location.href = "admin.html");
 
   if (path === "" || path === "index.html") initIndex();
-  if (path === "connexion.html") initConnex();
+  if (path === "login.html") initConnex();
   if (path === "publier.html") initPublish();
   if (path === "niveau.html") initNiveau();
   if (path === "utilisateur.html") initUserPage();
