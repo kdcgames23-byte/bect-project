@@ -3,14 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin BECT</title>
+  <title>Niveau</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main>
-    <h2>Administration</h2>
-    <div id="admin-levels-container" class="levels-grid"></div>
-    <div id="admin-users-container"></div>
+  <main id="level-page">
+    <h2 id="level-title"></h2>
+    <p id="level-desc"></p>
+    <div id="images-container"></div>
+    <p>Créateur : <span id="creator-name"></span></p>
+    <button id="download-json-btn">Télécharger JSON</button>
   </main>
 
   <script src="script.js" defer></script>

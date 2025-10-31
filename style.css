@@ -1,200 +1,64 @@
-/* ===========================
-   RESET DE BASE
-=========================== */
-* {
+body {
+  font-family: 'Segoe UI', sans-serif;
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-body {
-  background-color: #f5f5f7;
+  background-color: #f5f5f5;
   color: #333;
-  line-height: 1.6;
 }
 
-a {
-  text-decoration: none;
-  color: inherit;
-}
-
-/* ===========================
-   HEADER
-=========================== */
 header {
-  width: 100%;
-  background-color: #1f2937;
-  color: #fff;
-  padding: 15px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background-color: #222;
+  color: #fff;
+  padding: 10px 20px;
 }
 
-header h1 {
-  font-size: 1.5rem;
-  font-weight: bold;
-}
+header h1 { margin: 0; }
+#user-info { display: flex; gap: 10px; }
 
-header nav a {
-  margin-left: 15px;
-  padding: 8px 12px;
-  border-radius: 5px;
-  transition: 0.2s;
-}
+main { padding: 20px; }
 
-header nav a:hover {
-  background-color: #374151;
-}
-
-/* ===========================
-   FORMULAIRES (Login/Register/Publish)
-=========================== */
-form {
-  background-color: #fff;
-  padding: 25px;
-  border-radius: 12px;
+.auth-container, .publish-container {
   max-width: 400px;
-  margin: 40px auto;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  margin: 50px auto;
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
-form h2 {
-  margin-bottom: 20px;
-  text-align: center;
-  color: #111827;
+input, textarea, button {
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
 }
 
-form input[type="text"],
-form input[type="password"],
-form input[type="file"],
-form textarea {
-  width: 100%;
-  padding: 12px 15px;
-  margin-bottom: 15px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  transition: 0.2s;
-}
-
-form input:focus,
-form textarea:focus {
-  border-color: #2563eb;
-  outline: none;
-}
-
-form button {
-  width: 100%;
-  padding: 12px;
-  border: none;
-  background-color: #2563eb;
-  color: white;
-  font-weight: bold;
-  border-radius: 8px;
+button {
   cursor: pointer;
-  transition: 0.2s;
+  background-color: #222;
+  color: #fff;
+  border: none;
+  transition: 0.3s;
 }
 
-form button:hover {
-  background-color: #1d4ed8;
+button:hover {
+  background-color: #555;
 }
 
-/* ===========================
-   ACCUEIL ET CARDS
-=========================== */
-.main-container {
-  max-width: 1200px;
-  margin: 30px auto;
-  padding: 0 20px;
+.levels-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill,minmax(200px,1fr));
+  gap: 15px;
 }
 
 .level-card {
   background-color: #fff;
-  border-radius: 12px;
-  padding: 15px;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.level-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-}
-
-.level-card img {
-  width: 100%;
-  height: 150px;
-  object-fit: cover;
+  padding: 10px;
   border-radius: 8px;
-  margin-bottom: 10px;
-}
-
-.level-card h3 {
-  font-size: 1.1rem;
-  margin-bottom: 5px;
-}
-
-.level-card p {
-  font-size: 0.9rem;
-  color: #6b7280;
-}
-
-.level-card a {
-  display: inline-block;
-  margin-top: 10px;
-  color: #2563eb;
-  font-weight: bold;
-}
-
-.level-card a:hover {
-  text-decoration: underline;
-}
-
-/* ===========================
-   FOOTER
-=========================== */
-footer {
-  text-align: center;
-  padding: 20px 0;
-  background-color: #1f2937;
-  color: #fff;
-  margin-top: 50px;
-}
-
-/* ===========================
-   UTILISATEUR / PROFIL
-=========================== */
-.user-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.user-header h2 {
-  color: #111827;
-}
-
-.user-levels {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-}
-
-/* ===========================
-   RESPONSIVE
-=========================== */
-@media (max-width: 600px) {
-  header {
-    flex-direction: column;
-    text-align: center;
-  }
-  
-  header nav {
-    margin-top: 10px;
-  }
+  box-shadow: 0 1px 5px rgba(0,0,0,0.1);
 }

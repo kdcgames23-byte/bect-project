@@ -3,14 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin BECT</title>
+  <title>Profil utilisateur</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <header>
+    <h1>Mon Profil</h1>
+    <button id="logout-btn">Déconnexion</button>
+  </header>
+
   <main>
-    <h2>Administration</h2>
-    <div id="admin-levels-container" class="levels-grid"></div>
-    <div id="admin-users-container"></div>
+    <h2>Niveaux créés</h2>
+    <div id="user-levels-container" class="levels-grid">
+      <!-- Injecté par JS -->
+    </div>
   </main>
 
   <script src="script.js" defer></script>

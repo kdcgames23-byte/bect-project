@@ -1,30 +1,31 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>BECT - Accueil</title>
-<link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BECT - Accueil</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header>
-  <h1>BECT Levels</h1>
-  <div class="right">
-    <span id="userTop"></span>
-    <button id="loginBtn">Se connecter</button>
-    <button id="publishBtn">Publier un niveau</button>
-    <button id="adminBtn">Admin</button>
-  </div>
-</header>
+  <header>
+    <h1>BECT</h1>
+    <div id="user-info">
+      <span id="username-display"></span>
+      <button id="logout-btn">Déconnexion</button>
+    </div>
+  </header>
 
-<main class="container">
-  <div class="searchRow">
-    <input id="searchInput" placeholder="Rechercher niveau ou créateur" />
-    <button id="searchBtn">Rechercher</button>
-  </div>
-  <div id="levelsGrid" class="grid"></div>
-</main>
+  <main>
+    <div class="search-bar">
+      <input type="text" id="search-input" placeholder="Rechercher un niveau ou créateur">
+      <button id="search-btn">🔍</button>
+    </div>
+    <div id="levels-container" class="levels-grid">
+      <!-- Les niveaux seront injectés ici par JS -->
+    </div>
+    <button id="publish-btn">Publier un niveau</button>
+  </main>
 
-<script type="module" src="script.js"></script>
+  <script src="script.js" defer></script>
 </body>
 </html>
