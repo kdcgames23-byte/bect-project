@@ -1,60 +1,64 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BECT - Publier un niveau</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Publier un niveau</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="publish-container">
   <h2>Publier un niveau</h2>
   <form id="publish-form">
-    <input type="text" id="level-name" name="title" placeholder="Nom du niveau" required>
-    <textarea id="description" name="description" placeholder="Description (max 200 mots)"></textarea>
-    <input type="file" id="json-file" name="jsonFile" accept=".json" required>
-    <input type="file" id="image1" name="image1" accept="image/*" required>
-    <input type="file" id="image2" name="image2" accept="image/*">
-    <input type="file" id="image3" name="image3" accept="image/*">
+    <input type="text" id="title" placeholder="Nom du niveau" required>
+    <textarea id="description" placeholder="Description" required></textarea>
+    <input type="file" id="image" accept="image/*">
     <button type="submit">Publier</button>
   </form>
 </div>
 
-<script>
-const user = JSON.parse(localStorage.getItem('bect_user'));
-if(!user || !user.token){ alert('Connectez-vous pour publier un niveau'); window.location.href='connexion.html'; }
+<script type="module">
+import { API_URL, user } from './script.js';
 
-const API_URL = 'https://bect-project.onrender.com/api';
+if(!user) {
+  alert("Vous devez être connecté !");
+  window.location.href = "connexion.html";
+}
 
 document.getElementById('publish-form').addEventListener('submit', async (e) => {
   e.preventDefault();
-
-  const levelName = document.getElementById('level-name').value.trim();
+  const title = document.getElementById('title').value.trim();
   const description = document.getElementById('description').value.trim();
-  const jsonFile = document.getElementById('json-file').files[0];
-  const images = [document.getElementById('image1').files[0], document.getElementById('image2').files[0], document.getElementById('image3').files[0]].filter(Boolean);
+  const fileInput = document.getElementById('image');
+  let imageUrl = "";
 
-  if(jsonFile.size > 500*1024){ alert('Le JSON ne peut pas dépasser 500 Ko'); return; }
-  for(const img of images) if(img.size > 3*1024*1024){ alert('Chaque image doit être < 3 Mo'); return; }
-
-  const formData = new FormData();
-  formData.append('title', levelName);
-  formData.append('description', description);
-  formData.append('jsonFile', jsonFile);
-  images.forEach((img, idx) => formData.append(`image${idx+1}`, img));
-
-  try{
-    const res = await fetch(`${API_URL}/publish`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${user.token}` },
+  if(fileInput.files.length > 0){
+    const formData = new FormData();
+    formData.append("file", fileInput.files[0]);
+    formData.append("upload_preset", "YOUR_CLOUDINARY_PRESET"); // change avec ton preset
+    const resCloud = await fetch("https://api.cloudinary.com/v1_1/YOUR_CLOUDINARY_NAME/image/upload", {
+      method: "POST",
       body: formData
+    });
+    const dataCloud = await resCloud.json();
+    imageUrl = dataCloud.secure_url;
+  }
+
+  try {
+    const res = await fetch(`${API_URL}/levels`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${user.token}`
+      },
+      body: JSON.stringify({ title, description, images: imageUrl?[imageUrl]:[] })
     });
     const data = await res.json();
     if(data.success){
-      alert('Niveau publié !');
-      window.location.href = 'index.html';
-    } else alert(data.message || 'Erreur');
-  } catch(err){ console.error(err); alert('Erreur serveur'); }
+      alert("Niveau publié !");
+      window.location.href = "index.html";
+    } else alert(data.message);
+  } catch(err){ console.error(err); alert("Erreur serveur"); }
 });
 </script>
 </body>

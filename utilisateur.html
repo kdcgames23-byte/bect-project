@@ -1,42 +1,41 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BECT - Profil</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profil utilisateur</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="profile-container">
-  <h2>Profil utilisateur</h2>
-  <div id="profile-info"></div>
-</div>
+<h2 id="username-title"></h2>
+<div id="user-levels"></div>
 
-<script>
-const user = JSON.parse(localStorage.getItem('bect_user'));
-const API_URL = 'https://bect-project.onrender.com/api';
+<script type="module">
+import { API_URL } from './script.js';
 
-if(!user){ alert('Connectez-vous'); window.location.href='connexion.html'; }
+const params = new URLSearchParams(window.location.search);
+const username = params.get("username");
+document.getElementById('username-title').textContent = `Profil de ${username}`;
 
-async function loadProfile(){
+async function loadUserLevels(){
   try{
-    const res = await fetch(`${API_URL}/user/${user.username}`, {
-      headers: { 'Authorization': `Bearer ${user.token}` }
-    });
+    const res = await fetch(`${API_URL}/levels/user/${username}`);
     const data = await res.json();
-    if(data.success){
-      const div = document.getElementById('profile-info');
-      div.innerHTML = `
-        <p>Nom: ${data.user.username}</p>
-        <p>Rôle: ${data.user.role}</p>
-        <p>Niveaux publiés: ${data.user.levels.length}</p>
+    const container = document.getElementById('user-levels');
+    if(data.length===0){ container.innerHTML="<p>Aucun niveau</p>"; return; }
+    data.forEach(level=>{
+      const div = document.createElement('div');
+      div.innerHTML=`
+        <h3 style="cursor:pointer;">${level.title}</h3>
+        <p>${level.description}</p>
       `;
-    } else alert(data.message);
-
-  } catch(err){ console.error(err); alert('Erreur serveur'); }
+      div.querySelector('h3').addEventListener('click',()=>window.location.href=`niveau.html?id=${level._id}`);
+      container.appendChild(div);
+    });
+  } catch(err){ console.error(err); document.getElementById('user-levels').innerHTML="<p>Erreur serveur</p>"; }
 }
 
-loadProfile();
+loadUserLevels();
 </script>
 </body>
 </html>

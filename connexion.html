@@ -7,23 +7,25 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="auth-container">
-  <h2>Connexion</h2>
-  <form id="login-form">
-    <input type="text" id="username" placeholder="Nom d'utilisateur" required>
-    <input type="password" id="password" placeholder="Mot de passe" required>
-    <button type="submit">Se connecter</button>
-  </form>
-  <p>Pas encore inscrit ? <a href="inscription.html">S'inscrire</a></p>
-</div>
+  <div class="auth-container">
+    <h2>Connexion</h2>
+    <form id="login-form">
+      <input type="text" id="username" placeholder="Nom d'utilisateur" required>
+      <input type="password" id="password" placeholder="Mot de passe" required>
+      <button type="submit">Se connecter</button>
+    </form>
+    <p>Pas encore inscrit ? <a href="inscription.html">S'inscrire</a></p>
+  </div>
 
-<script>
-const API_URL = 'https://bect-project.onrender.com/api';
+<script type="module">
+import { API_URL } from './script.js';
 
 document.getElementById('login-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const username = document.getElementById('username').value.trim();
-  const password = document.getElementById('password').value;
+  const password = document.getElementById('password').value.trim();
+
+  if (!username || !password) return alert("Remplissez tous les champs.");
 
   try {
     const res = await fetch(`${API_URL}/login`, {
@@ -32,15 +34,13 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
       body: JSON.stringify({ username, password })
     });
     const data = await res.json();
-
-    if(data.success){
+    if (data.success) {
       localStorage.setItem('bect_user', JSON.stringify({ username: data.username, role: data.role, token: data.token }));
       window.location.href = 'index.html';
     } else {
       alert(data.message);
     }
-
-  } catch(err){
+  } catch(err) {
     console.error(err);
     alert('Erreur serveur');
   }

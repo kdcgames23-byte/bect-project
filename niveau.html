@@ -1,48 +1,37 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BECT - Niveau</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Niveau</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="level-container">
-  <h2>Liste des niveaux</h2>
-  <div id="levels-list"></div>
-</div>
+<div id="level-container"></div>
 
-<script>
-const user = JSON.parse(localStorage.getItem('bect_user'));
-const API_URL = 'https://bect-project.onrender.com/api';
+<script type="module">
+import { API_URL } from './script.js';
 
-async function loadLevels(){
+const params = new URLSearchParams(window.location.search);
+const levelId = params.get("id");
+
+async function loadLevel(){
   try{
-    const res = await fetch(`${API_URL}/levels`);
-    const levels = await res.json();
+    const res = await fetch(`${API_URL}/levels/${levelId}`);
+    const data = await res.json();
+    if(!data.success) return document.getElementById('level-container').innerHTML="<p>Niveau introuvable</p>";
 
-    const container = document.getElementById('levels-list');
-    container.innerHTML = '';
-
-    levels.forEach(level => {
-      const div = document.createElement('div');
-      div.classList.add('level-card');
-      div.innerHTML = `
-        <h3>${level.title}</h3>
-        <p>${level.description}</p>
-        <p>Créateur: ${level.author}</p>
-        <a href="${level.jsonUrl}" download>Télécharger JSON</a>
-      `;
-      container.appendChild(div);
-    });
-
-  } catch(err){
-    console.error(err);
-    alert('Erreur serveur');
-  }
+    const container = document.getElementById('level-container');
+    container.innerHTML=`
+      <h2>${data.level.title}</h2>
+      <p>${data.level.description}</p>
+      ${data.level.images.map(img=>`<img src="${img}" alt="image" style="width:300px;height:auto;margin:5px;border-radius:8px">`).join('')}
+      <p>Créé par <span style="cursor:pointer;color:blue;" onclick="window.location.href='utilisateur.html?username=${data.level.creator}'">${data.level.creator}</span></p>
+    `;
+  } catch(err){ console.error(err); document.getElementById('level-container').innerHTML="<p>Erreur serveur</p>"; }
 }
 
-loadLevels();
+loadLevel();
 </script>
 </body>
 </html>
