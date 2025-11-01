@@ -42,6 +42,43 @@ usernameDisplay?.addEventListener("click",()=>{
   window.location.href=`utilisateur.html?username=${encodeURIComponent(user?.username||'')}`;
 });
 
+// --- Fonctions pour inscription et connexion ---
+export async function registerUser(username, password){
+  try {
+    const res = await fetch(`${API_URL}/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password })
+    });
+    return await res.json();
+  } catch(e) {
+    console.error("Erreur inscription:", e);
+    return { success: false, message: "Erreur serveur" };
+  }
+}
+
+export async function loginUser(username, password){
+  try {
+    const res = await fetch(`${API_URL}/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if(data.success){
+      localStorage.setItem("bect_user", JSON.stringify({
+        username: data.username,
+        role: data.role,
+        token: data.token
+      }));
+    }
+    return data;
+  } catch(e){
+    console.error("Erreur login:", e);
+    return { success: false, message: "Erreur serveur" };
+  }
+}
+
 // --- Recherche ---
 btnSearch?.addEventListener("click", async ()=>{
   const query = searchInput.value.trim();
