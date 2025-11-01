@@ -1,42 +1,35 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Inscription</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BECT - Inscription</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Inscription</h1>
-  <form id="register-form">
-    <input type="text" name="username" placeholder="Nom d'utilisateur" required>
-    <input type="password" name="password" placeholder="Mot de passe" required>
-    <button type="submit">S'inscrire</button>
-  </form>
-  <script type="module">
-    import { API_URL } from './script.js';
+<h1>Inscription</h1>
+<form id="register-form">
+  <input type="text" id="reg-username" placeholder="Nom d'utilisateur" required>
+  <input type="password" id="reg-password" placeholder="Mot de passe" required>
+  <button type="submit">S'inscrire</button>
+</form>
+<p id="reg-msg"></p>
+<p>Déjà inscrit ? <a href="connexion.html">Se connecter</a></p>
 
-    document.getElementById("register-form").addEventListener("submit", async e => {
-      e.preventDefault();
-      const form = e.target;
-      const username = form.username.value;
-      const password = form.password.value;
+<script type="module">
+import { registerUser } from './script.js';
 
-      try {
-        const res = await fetch(`${API_URL}/register`,{
-          method:"POST",
-          headers:{"Content-Type":"application/json"},
-          body: JSON.stringify({username,password})
-        });
-        const data = await res.json();
-        if(data.success){
-          alert("Inscription réussie !");
-          window.location.href="connexion.html";
-        } else alert(data.message);
-      } catch(err){
-        console.error(err);
-        alert("Erreur serveur");
-      }
-    });
-  </script>
+const form = document.getElementById('register-form');
+const msg = document.getElementById('reg-msg');
+
+form.addEventListener('submit', async(e)=>{
+  e.preventDefault();
+  const username = document.getElementById('reg-username').value.trim();
+  const password = document.getElementById('reg-password').value.trim();
+  const res = await registerUser(username,password);
+  msg.textContent = res.message;
+  if(res.success) setTimeout(()=>window.location.href='connexion.html',500);
+});
+</script>
 </body>
 </html>

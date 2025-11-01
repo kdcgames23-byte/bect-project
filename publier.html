@@ -1,47 +1,54 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Publier un niveau</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BECT - Publier Niveau</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Publier un niveau</h1>
-  <form id="publish-form" enctype="multipart/form-data">
-    <input type="text" name="title" placeholder="Titre" required>
-    <textarea name="description" placeholder="Description"></textarea>
-    <input type="file" name="jsonFile" accept=".json" required>
-    <input type="file" name="image1" accept="image/*">
-    <input type="file" name="image2" accept="image/*">
-    <input type="file" name="image3" accept="image/*">
-    <button type="submit">Publier</button>
-  </form>
-  <script type="module">
-    import { API_URL, user } from './script.js';
+<h1>Publier un niveau</h1>
+<form id="publish-form" enctype="multipart/form-data">
+  <input type="text" id="level-title" placeholder="Titre du niveau" required>
+  <textarea id="level-desc" placeholder="Description"></textarea>
+  <input type="file" id="json-file" accept=".json" required>
+  <input type="file" id="img1" accept="image/*">
+  <input type="file" id="img2" accept="image/*">
+  <input type="file" id="img3" accept="image/*">
+  <button type="submit">Publier</button>
+</form>
+<p id="publish-msg"></p>
 
-    if(!user) window.location.href="connexion.html";
+<script type="module">
+import { API_URL, user } from './script.js';
 
-    document.getElementById("publish-form").addEventListener("submit", async e => {
-      e.preventDefault();
-      const form = e.target;
-      const formData = new FormData(form);
+const form = document.getElementById('publish-form');
+const msg = document.getElementById('publish-msg');
 
-      try {
-        const res = await fetch(`${API_URL}/publish`,{
-          method:"POST",
-          headers: { "Authorization": `Bearer ${user.token}` },
-          body: formData
-        });
-        const data = await res.json();
-        if(data.success){
-          alert("Niveau publié !");
-          window.location.href=`niveau.html?id=${data.levelId}`;
-        } else alert(data.message);
-      } catch(err){
-        console.error(err);
-        alert("Erreur serveur");
-      }
+form.addEventListener('submit', async(e)=>{
+  e.preventDefault();
+  if(!user){ alert('Connectez-vous'); return; }
+  const formData = new FormData();
+  formData.append('title', document.getElementById('level-title').value);
+  formData.append('description', document.getElementById('level-desc').value);
+  formData.append('jsonFile', document.getElementById('json-file').files[0]);
+  if(document.getElementById('img1').files[0]) formData.append('image1', document.getElementById('img1').files[0]);
+  if(document.getElementById('img2').files[0]) formData.append('image2', document.getElementById('img2').files[0]);
+  if(document.getElementById('img3').files[0]) formData.append('image3', document.getElementById('img3').files[0]);
+
+  try{
+    const res = await fetch(`${API_URL}/publish`,{
+      method:'POST',
+      headers:{ Authorization:`Bearer ${user.token}` },
+      body: formData
     });
-  </script>
+    const data = await res.json();
+    msg.textContent = data.success ? 'Publié avec succès !' : data.message;
+  }catch(e){
+    console.error(e);
+    msg.textContent='Erreur serveur';
+  }
+});
+</script>
 </body>
 </html>

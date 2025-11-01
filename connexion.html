@@ -1,42 +1,35 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Connexion</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BECT - Connexion</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Connexion</h1>
-  <form id="login-form">
-    <input type="text" name="username" placeholder="Nom d'utilisateur" required>
-    <input type="password" name="password" placeholder="Mot de passe" required>
-    <button type="submit">Se connecter</button>
-  </form>
-  <script type="module">
-    import { API_URL } from './script.js';
+<h1>Connexion</h1>
+<form id="login-form">
+  <input type="text" id="login-username" placeholder="Nom d'utilisateur" required>
+  <input type="password" id="login-password" placeholder="Mot de passe" required>
+  <button type="submit">Se connecter</button>
+</form>
+<p id="login-msg"></p>
+<p>Pas encore inscrit ? <a href="inscription.html">Créer un compte</a></p>
 
-    document.getElementById("login-form").addEventListener("submit", async e => {
-      e.preventDefault();
-      const form = e.target;
-      const username = form.username.value;
-      const password = form.password.value;
+<script type="module">
+import { loginUser } from './script.js';
 
-      try {
-        const res = await fetch(`${API_URL}/login`,{
-          method:"POST",
-          headers:{"Content-Type":"application/json"},
-          body: JSON.stringify({username,password})
-        });
-        const data = await res.json();
-        if(data.success){
-          localStorage.setItem("bect_user", JSON.stringify({username:data.username, role:data.role, token:data.token}));
-          window.location.href="index.html";
-        } else alert(data.message);
-      } catch(err){
-        console.error(err);
-        alert("Erreur serveur");
-      }
-    });
-  </script>
+const form = document.getElementById('login-form');
+const msg = document.getElementById('login-msg');
+
+form.addEventListener('submit', async(e)=>{
+  e.preventDefault();
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value.trim();
+  const res = await loginUser(username,password);
+  msg.textContent = res.message;
+  if(res.success) setTimeout(()=>window.location.href='index.html',500);
+});
+</script>
 </body>
 </html>

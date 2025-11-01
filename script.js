@@ -43,57 +43,57 @@ usernameDisplay?.addEventListener("click",()=>{
 });
 
 // --- Fonctions pour inscription et connexion ---
-export async function registerUser(username, password){
-  try {
-    const res = await fetch(`${API_URL}/register`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password })
+export async function registerUser(username,password){
+  try{
+    const res = await fetch(`${API_URL}/register`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({username,password})
     });
     return await res.json();
-  } catch(e) {
-    console.error("Erreur inscription:", e);
-    return { success: false, message: "Erreur serveur" };
+  }catch(e){
+    console.error("Erreur inscription:",e);
+    return {success:false,message:"Erreur serveur"};
   }
 }
 
-export async function loginUser(username, password){
-  try {
-    const res = await fetch(`${API_URL}/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password })
+export async function loginUser(username,password){
+  try{
+    const res = await fetch(`${API_URL}/login`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({username,password})
     });
     const data = await res.json();
     if(data.success){
-      localStorage.setItem("bect_user", JSON.stringify({
-        username: data.username,
-        role: data.role,
-        token: data.token
+      localStorage.setItem("bect_user",JSON.stringify({
+        username:data.username,
+        role:data.role,
+        token:data.token
       }));
     }
     return data;
-  } catch(e){
-    console.error("Erreur login:", e);
-    return { success: false, message: "Erreur serveur" };
+  }catch(e){
+    console.error("Erreur login:",e);
+    return {success:false,message:"Erreur serveur"};
   }
 }
 
 // --- Recherche ---
-btnSearch?.addEventListener("click", async ()=>{
+btnSearch?.addEventListener("click", async()=>{
   const query = searchInput.value.trim();
   if(!query) return;
   searchResults.innerHTML="<p>Recherche en cours...</p>";
-  try {
+  try{
     const res = await fetch(`${API_URL}/search?query=${encodeURIComponent(query)}`);
     const data = await res.json();
-    if(!data || data.length===0){ searchResults.innerHTML="<p>Aucun résultat</p>"; return; }
+    if(!data||data.length===0){ searchResults.innerHTML="<p>Aucun résultat</p>"; return; }
     searchResults.innerHTML="";
     data.forEach(item=>{
-      const div = document.createElement("div");
+      const div=document.createElement("div");
       div.classList.add("result-item");
-      const img = item.images?.[0] || '';
-      div.innerHTML = `
+      const img = item.images?.[0]||'';
+      div.innerHTML=`
         <img src="${img}" alt="${item.title}" style="width:120px;height:80px;object-fit:cover;border-radius:6px"/>
         <h3 style="cursor:pointer;">${item.title}</h3>
         <p>Créé par : <span class="creator-name" data-creator="${item.creator}">${item.creator}</span></p>
@@ -102,7 +102,7 @@ btnSearch?.addEventListener("click", async ()=>{
       div.querySelector('h3')?.addEventListener('click',()=>{ window.location.href=`niveau.html?id=${encodeURIComponent(item._id)}`; });
       searchResults.appendChild(div);
     });
-  } catch(err){
+  }catch(err){
     console.error(err);
     searchResults.innerHTML="<p>Erreur recherche</p>";
   }

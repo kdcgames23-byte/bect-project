@@ -3,39 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Profil utilisateur</title>
+<title>BECT - Profil utilisateur</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<h2 id="username-title"></h2>
+<h1>Profil de <span id="profile-name"></span></h1>
 <div id="user-levels"></div>
 
 <script type="module">
 import { API_URL } from './script.js';
 
-const params = new URLSearchParams(window.location.search);
-const username = params.get("username");
-document.getElementById('username-title').textContent = `Profil de ${username}`;
+const urlParams = new URLSearchParams(window.location.search);
+const username = urlParams.get('username');
+document.getElementById('profile-name').textContent=username;
 
-async function loadUserLevels(){
+async function fetchLevels(){
   try{
-    const res = await fetch(`${API_URL}/levels/user/${username}`);
+    const res = await fetch(`${API_URL}/user-levels?username=${encodeURIComponent(username)}`);
     const data = await res.json();
     const container = document.getElementById('user-levels');
-    if(data.length===0){ container.innerHTML="<p>Aucun niveau</p>"; return; }
-    data.forEach(level=>{
-      const div = document.createElement('div');
-      div.innerHTML=`
-        <h3 style="cursor:pointer;">${level.title}</h3>
-        <p>${level.description}</p>
-      `;
-      div.querySelector('h3').addEventListener('click',()=>window.location.href=`niveau.html?id=${level._id}`);
+    container.innerHTML='';
+    data.levels.forEach(l=>{
+      const div=document.createElement('div');
+      div.innerHTML=`<h3>${l.title}</h3><p>${l.description}</p>`;
       container.appendChild(div);
     });
-  } catch(err){ console.error(err); document.getElementById('user-levels').innerHTML="<p>Erreur serveur</p>"; }
+  }catch(e){
+    console.error(e);
+  }
 }
-
-loadUserLevels();
+fetchLevels();
 </script>
 </body>
 </html>

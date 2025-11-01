@@ -3,49 +3,43 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin</title>
+<title>BECT - Admin</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<h2>Panel Admin</h2>
-<div id="admin-container"></div>
+<h1>Administration</h1>
+<div id="users-list"></div>
 
 <script type="module">
 import { API_URL, user } from './script.js';
 
-if(!user || user.role!=="admin"){
-  alert("Accès refusé");
-  window.location.href="index.html";
-}
-
-async function loadAdminPanel(){
+async function fetchUsers(){
+  if(!user||user.role!=='admin'){ alert('Accès admin requis'); window.location.href='index.html'; return; }
   try{
-    const res = await fetch(`${API_URL}/admin/levels`, { headers: { "Authorization": `Bearer ${user.token}` } });
+    const res = await fetch(`${API_URL}/admin/users`,{
+      headers:{ Authorization:`Bearer ${user.token}` }
+    });
     const data = await res.json();
-    const container = document.getElementById('admin-container');
-    container.innerHTML="";
-    data.forEach(level=>{
-      const div = document.createElement('div');
-      div.innerHTML=`
-        <h3>${level.title}</h3>
-        <p>Créé par : ${level.creator}</p>
-        <button class="delete-btn" data-id="${level._id}">Supprimer</button>
-      `;
-      div.querySelector('.delete-btn').addEventListener('click', async ()=>{
-        if(confirm("Supprimer ce niveau ?")){
-          await fetch(`${API_URL}/admin/levels/${level._id}`,{
-            method:"DELETE",
-            headers: { "Authorization": `Bearer ${user.token}` }
+    const container = document.getElementById('users-list');
+    container.innerHTML='';
+    data.users.forEach(u=>{
+      const div=document.createElement('div');
+      div.innerHTML=`<span>${u.username}</span> <button data-username="${u.username}">Supprimer</button>`;
+      div.querySelector('button')?.addEventListener('click', async()=>{
+        if(confirm('Supprimer cet utilisateur ?')){
+          await fetch(`${API_URL}/admin/users/${u.username}`,{
+            method:'DELETE',
+            headers:{ Authorization:`Bearer ${user.token}` }
           });
-          div.remove();
+          fetchUsers();
         }
       });
       container.appendChild(div);
     });
-  } catch(err){ console.error(err); document.getElementById('admin-container').innerHTML="<p>Erreur serveur</p>"; }
+  }catch(e){ console.error(e); }
 }
 
-loadAdminPanel();
+fetchUsers();
 </script>
 </body>
 </html>
