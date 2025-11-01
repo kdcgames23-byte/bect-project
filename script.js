@@ -1,9 +1,14 @@
+// ===============================
+// script.js
+// ===============================
+
+// URL de ton API Render
 export const API_URL = "https://bect-project.onrender.com/api";
 
 // --- Vérifier si utilisateur connecté ---
 export const user = JSON.parse(localStorage.getItem("bect_user"));
 
-// DOM
+// --- DOM Elements ---
 const btnLogin = document.getElementById("btn-login");
 const btnRegister = document.getElementById("btn-register");
 const userInfo = document.getElementById("user-info");
@@ -15,7 +20,7 @@ const searchInput = document.getElementById("search-input");
 const btnSearch = document.getElementById("btn-search");
 const searchResults = document.getElementById("search-results");
 
-// --- Affichage boutons ---
+// --- Affichage boutons selon connexion ---
 if(user){
   btnLogin?.style.setProperty("display","none");
   btnRegister?.style.setProperty("display","none");
@@ -35,8 +40,10 @@ if(user){
 btnLogin?.addEventListener("click",()=>window.location.href="connexion.html");
 btnRegister?.addEventListener("click",()=>window.location.href="inscription.html");
 btnPublish?.addEventListener("click",()=>{ 
-  if(!user) { alert("Connectez-vous."); window.location.href="connexion.html"; }
-  else window.location.href="publier.html"; 
+  if(!user) { 
+    alert("Connectez-vous."); 
+    window.location.href="connexion.html"; 
+  } else window.location.href="publier.html"; 
 });
 btnAdmin?.addEventListener("click",()=>window.location.href="admin.html");
 btnLogout?.addEventListener("click",()=>{ 
@@ -45,9 +52,49 @@ btnLogout?.addEventListener("click",()=>{
     window.location.reload();
   } 
 });
-usernameDisplay?.addEventListener("click",()=>{ window.location.href=`utilisateur.html?username=${encodeURIComponent(user?.username||'')}`; });
+usernameDisplay?.addEventListener("click",()=>{ 
+  window.location.href=`utilisateur.html?username=${encodeURIComponent(user?.username||'')}`; 
+});
 
-// --- Recherche ---
+// ===============================
+// Fonctions Authentification
+// ===============================
+
+export async function register(username,email,password){
+  try{
+    const res = await fetch(`${API_URL}/auth/register`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({username,email,password})
+    });
+    return await res.json();
+  }catch(err){
+    console.error(err);
+    return {success:false,message:"Erreur serveur"};
+  }
+}
+
+export async function login(email,password){
+  try{
+    const res = await fetch(`${API_URL}/auth/login`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({email,password})
+    });
+    return await res.json();
+  }catch(err){
+    console.error(err);
+    return {success:false,message:"Erreur serveur"};
+  }
+}
+
+export function setUser(userData){
+  localStorage.setItem("bect_user",JSON.stringify(userData));
+}
+
+// ===============================
+// Recherche
+// ===============================
 btnSearch?.addEventListener("click", async ()=>{
   const query = searchInput.value.trim();
   if(!query) return;
@@ -55,7 +102,10 @@ btnSearch?.addEventListener("click", async ()=>{
   try {
     const res = await fetch(`${API_URL}/search?query=${encodeURIComponent(query)}`);
     const data = await res.json();
-    if(!data || data.length===0){ searchResults.innerHTML="<p>Aucun résultat</p>"; return; }
+    if(!data || data.length===0){ 
+      searchResults.innerHTML="<p>Aucun résultat</p>"; 
+      return; 
+    }
     searchResults.innerHTML="";
     data.forEach(item=>{
       const div=document.createElement("div");
@@ -66,9 +116,16 @@ btnSearch?.addEventListener("click", async ()=>{
         <h3 style="cursor:pointer;">${item.title}</h3>
         <p>Créé par : <span class="creator-name" data-creator="${item.creator}">${item.creator}</span></p>
       `;
-      div.querySelector('.creator-name')?.addEventListener('click',()=>{ window.location.href=`utilisateur.html?username=${encodeURIComponent(item.creator)}`; });
-      div.querySelector('h3')?.addEventListener('click',()=>{ window.location.href=`niveau.html?id=${encodeURIComponent(item._id)}`; });
+      div.querySelector('.creator-name')?.addEventListener('click',()=>{
+        window.location.href=`utilisateur.html?username=${encodeURIComponent(item.creator)}`;
+      });
+      div.querySelector('h3')?.addEventListener('click',()=>{
+        window.location.href=`niveau.html?id=${encodeURIComponent(item._id)}`;
+      });
       searchResults.appendChild(div);
     });
-  } catch(err){ console.error(err); searchResults.innerHTML="<p>Erreur recherche</p>"; }
+  } catch(err){
+    console.error(err);
+    searchResults.innerHTML="<p>Erreur recherche</p>";
+  }
 });
