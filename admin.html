@@ -18,27 +18,24 @@
 </main>
 
 <script>
-const token = localStorage.getItem('token');
-const role = localStorage.getItem('role');
+const user = JSON.parse(localStorage.getItem('bect_user'));
+if(!user){ alert('Connectez-vous !'); window.location.href='connexion.html'; }
 
-// Vérifier clé admin
-if(!token || role !== 'admin'){
-  alert("Accès admin requis !");
-  window.location.href = 'connexion.html';
+const API_URL = 'https://bect-project.onrender.com/api';
+
+// Vérifier admin côté frontend (affichage)
+if(user.role !== 'admin'){
+  // on laisse quand même l'accès si tu fournis ADMIN_KEY dans header ; le backend vérifiera.
 }
 
-// Déconnexion
-document.getElementById('logout-btn').addEventListener('click', () => {
-  localStorage.clear();
-  window.location.href = 'connexion.html';
-});
+document.getElementById('logout-btn').addEventListener('click', ()=>{ localStorage.removeItem('bect_user'); window.location.href='connexion.html'; });
 
-// Récupérer tous les utilisateurs
 async function fetchUsers(){
-  try {
-    const res = await fetch('https://bect-project.onrender.com/api/admin/users', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
+  try{
+    const headers = { 'Authorization': `Bearer ${user.token}` };
+    // Si tu veux utiliser ADMIN_KEY côté front, ajoute: headers['admin_key'] = '20090805C0K1D2M98347TA@';
+
+    const res = await fetch(`${API_URL}/admin/users`, { headers });
     const data = await res.json();
     const container = document.getElementById('users-container');
     container.innerHTML = '';
@@ -49,35 +46,26 @@ async function fetchUsers(){
         div.className = 'user-card';
         div.innerHTML = `
           <span>${u.username}</span>
-          <button onclick="deleteUser('${u._id}')">Supprimer</button>
+          <button onclick="deleteUser('${u.username}')">Supprimer</button>
         `;
         container.appendChild(div);
       });
     } else {
       container.innerHTML = "<p>Aucun utilisateur trouvé</p>";
     }
-  } catch(err){
-    console.error(err);
-    alert('Erreur serveur');
-  }
+  } catch(e){ console.error(e); alert('Erreur serveur'); }
 }
 
-async function deleteUser(id){
-  if(!confirm("Supprimer cet utilisateur ?")) return;
-  try {
-    const res = await fetch(`https://bect-project.onrender.com/api/admin/users/${id}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
+async function deleteUser(username){
+  if(!confirm('Supprimer cet utilisateur ?')) return;
+  try{
+    const headers = { 'Authorization': `Bearer ${user.token}` };
+    // headers['admin_key'] = '20090805C0K1D2M98347TA@'; // si tu veux utiliser la clé admin
+    const res = await fetch(`${API_URL}/admin/users/${encodeURIComponent(username)}`, { method: 'DELETE', headers });
     const data = await res.json();
-    if(data.success){
-      alert('Utilisateur supprimé !');
-      fetchUsers();
-    } else alert(data.message);
-  } catch(err){
-    console.error(err);
-    alert('Erreur serveur');
-  }
+    if(data.success){ alert('Utilisateur supprimé !'); fetchUsers(); }
+    else alert(data.message);
+  } catch(e){ console.error(e); alert('Erreur serveur'); }
 }
 
 fetchUsers();

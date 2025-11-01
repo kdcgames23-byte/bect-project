@@ -18,13 +18,14 @@
 </div>
 
 <script>
+const API_URL = 'https://bect-project.onrender.com/api';
 document.getElementById('login-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const username = document.getElementById('username').value;
   const password = document.getElementById('password').value;
 
   try {
-    const res = await fetch('https://bect-project.onrender.com/api/login', {
+    const res = await fetch(`${API_URL}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
@@ -32,10 +33,8 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     const data = await res.json();
 
     if(data.success){
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('username', data.username);
-      localStorage.setItem('role', data.role);
-      // Si admin, redirection vers admin
+      // Stockage uniforme
+      localStorage.setItem('bect_user', JSON.stringify({ username: data.username, role: data.role, token: data.token }));
       if(data.role === 'admin') window.location.href = 'admin.html';
       else window.location.href = 'index.html';
     } else {
