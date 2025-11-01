@@ -7,15 +7,14 @@ import bcrypt from "bcryptjs";
 import cloudinary from "cloudinary";
 import multer from "multer";
 import streamifier from "streamifier";
+import path from "path";
 
 dotenv.config();
-
-// === URL de ton API Render ===
-const API_URL = "https://bect-project.onrender.com/api";
 
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: "6mb" }));
+app.use(express.static("public")); // front-end dans ./public
 
 // === Cloudinary Config ===
 cloudinary.v2.config({
@@ -25,11 +24,6 @@ cloudinary.v2.config({
 });
 
 // === MongoDB ===
-if (!process.env.MONGO_URI) {
-  console.error("MONGO_URI non défini !");
-  process.exit(1);
-}
-
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -72,10 +66,10 @@ function auth(req, res, next) {
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// === ROUTES ===
-app.get('/', (req, res) => res.send('🚀 BECT API en ligne'));
+// === Routes API ===
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public/index.html')));
 
-// REGISTER
+// --- REGISTER ---
 app.post('/api/register', async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -93,7 +87,7 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
-// LOGIN
+// --- LOGIN ---
 app.post('/api/login', async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -122,7 +116,7 @@ function uploadBufferToCloudinary(buffer, filename, resource_type = 'auto'){
   });
 }
 
-// === PUBLISH LEVEL ===
+// --- PUBLISH LEVEL ---
 app.post('/api/publish', auth, upload.fields([
   { name: 'jsonFile', maxCount: 1 },
   { name: 'image1', maxCount: 1 },
@@ -134,18 +128,12 @@ app.post('/api/publish', auth, upload.fields([
     if (!title || !req.files || !req.files['jsonFile']) return res.status(400).json({ success: false, message: 'Champs obligatoires manquants' });
 
     const jsonBuf = req.files['jsonFile'][0].buffer;
-    const jsonSizeMb = jsonBuf.length / (1024 * 1024);
-    if (jsonSizeMb > 3) return res.status(400).json({ success: false, message: 'JSON trop volumineux (>3Mo)' });
-
     const jsonUrl = await uploadBufferToCloudinary(jsonBuf, 'level_json', 'raw');
 
     const images = [];
     for (let key of ['image1','image2','image3']){
       if (req.files[key]){
-        const buf = req.files[key][0].buffer;
-        const sizeMb = buf.length / (1024 * 1024);
-        if (sizeMb > 3) return res.status(400).json({ success: false, message: `Image ${key} trop volumineuse (>3Mo)` });
-        const url = await uploadBufferToCloudinary(buf, key, 'image');
+        const url = await uploadBufferToCloudinary(req.files[key][0].buffer, key, 'image');
         images.push(url);
       }
     }
@@ -165,7 +153,7 @@ app.post('/api/publish', auth, upload.fields([
   }
 });
 
-// === GET LEVELS ===
+// --- GET LEVELS ---
 app.get('/api/levels', async (req, res) => {
   try{
     const levels = await Level.find({}).sort({ createdAt: -1 });
@@ -175,73 +163,18 @@ app.get('/api/levels', async (req, res) => {
   }
 });
 
-// === GET LEVEL BY ID ===
-app.get('/api/level/:id', async (req, res) => {
-  try{
-    const lvl = await Level.findById(req.params.id);
-    if(!lvl) return res.status(404).json({ success: false, message: 'Niveau introuvable' });
-    res.json({ success: true, level: lvl });
-  } catch(e){
-    res.status(500).json({ success: false, message: 'Erreur serveur' });
-  }
-});
-
-// === GET USER LEVELS ===
-app.get('/api/user-levels', async (req, res) => {
-  try{
-    const username = req.query.username;
-    if(!username) return res.status(400).json({ success: false, message: 'Username requis' });
-    const levels = await Level.find({ creator: username }).sort({ createdAt: -1 });
-    res.json({ success: true, levels });
-  } catch(e){
-    res.status(500).json({ success: false, message: 'Erreur serveur' });
-  }
-});
-
-// === SEARCH ===
+// --- SEARCH ---
 app.get('/api/search', async (req, res) => {
   try{
     const query = req.query.query;
     if (!query) return res.json([]);
-
     const results = await Level.find({
       $or: [
         { title: { $regex: query, $options: "i" } },
         { creator: { $regex: query, $options: "i" } }
       ]
     }).limit(50);
-
     res.json(results);
-  } catch(e){
-    res.status(500).json({ success: false, message: 'Erreur serveur' });
-  }
-});
-
-// === ADMIN USERS ===
-app.get('/api/admin/users', auth, async (req, res) => {
-  try{
-    const isAdmin = req.user.role === 'admin';
-    const hasKey = req.headers.admin_key && req.headers.admin_key === process.env.ADMIN_KEY;
-    if(!isAdmin && !hasKey) return res.status(403).json({ success: false, message: 'Accès admin requis' });
-
-    const users = await User.find({}, { password: 0 }).sort({ username: 1 });
-    res.json({ success: true, users });
-  } catch(e){
-    res.status(500).json({ success: false, message: 'Erreur serveur' });
-  }
-});
-
-// === ADMIN DELETE USER ===
-app.delete('/api/admin/users/:username', auth, async (req, res) => {
-  try{
-    const isAdmin = req.user.role === 'admin';
-    const hasKey = req.headers.admin_key && req.headers.admin_key === process.env.ADMIN_KEY;
-    if(!isAdmin && !hasKey) return res.status(403).json({ success: false, message: 'Accès admin requis' });
-
-    const username = req.params.username;
-    await User.deleteOne({ username });
-    await Level.deleteMany({ creator: username });
-    res.json({ success: true });
   } catch(e){
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }

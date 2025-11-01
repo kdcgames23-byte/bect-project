@@ -2,56 +2,27 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bect Project</title>
+  <title>BECT - Accueil</title>
   <link rel="stylesheet" href="style.css">
-  <style>
-    body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f4; }
-    nav { background:#222; color:#fff; padding:10px 20px; display:flex; align-items:center; justify-content:space-between; }
-    nav .buttons button { margin-left:10px; padding:6px 12px; cursor:pointer; border:none; border-radius:4px; }
-    nav .buttons button:hover { opacity:0.8; }
-    nav .user-info { display:flex; align-items:center; gap:10px; cursor:pointer; }
-    .search-bar { padding:20px; display:flex; gap:10px; justify-content:center; }
-    #search-input { width:300px; padding:6px; border-radius:4px; border:1px solid #ccc; }
-    #btn-search { padding:6px 12px; border:none; background:#222; color:#fff; border-radius:4px; cursor:pointer; }
-    #btn-search:hover { opacity:0.8; }
-    #search-results { padding:20px; display:flex; flex-direction:column; gap:10px; max-width:800px; margin:auto; }
-    .result-item { display:flex; align-items:center; gap:10px; background:#fff; padding:10px; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
-    .result-item img { width:120px; height:80px; object-fit:cover; border-radius:6px; }
-    .result-item h3 { margin:0; cursor:pointer; color:#222; }
-    .result-item h3:hover { text-decoration:underline; }
-    .result-item p { margin:0; color:#555; }
-  </style>
 </head>
 <body>
-
-  <!-- Navigation -->
-  <nav>
-    <div class="logo"><h2>Bect</h2></div>
-    <div class="buttons">
-      <button id="btn-login">Connexion</button>
-      <button id="btn-register">Inscription</button>
-      <div class="user-info" id="user-info" style="display:none;">
-        <span id="username-display"></span>
-        <button id="btn-logout">Déconnexion</button>
-        <button id="btn-publish" style="display:none;">Publier</button>
-        <button id="btn-admin" style="display:none;">Admin</button>
-      </div>
+  <header>
+    <button id="btn-login">Se connecter</button>
+    <button id="btn-register">S'inscrire</button>
+    <div id="user-info" style="display:none">
+      <span id="username-display"></span>
+      <button id="btn-logout">Déconnexion</button>
     </div>
-  </nav>
-
-  <!-- Recherche -->
-  <div class="search-bar">
-    <input type="text" id="search-input" placeholder="Rechercher un niveau, créateur...">
+    <button id="btn-publish" style="display:none">Publier un niveau</button>
+    <button id="btn-admin" style="display:none">Admin</button>
+    <input type="text" id="search-input" placeholder="Rechercher...">
     <button id="btn-search">Rechercher</button>
-  </div>
+  </header>
 
-  <!-- Résultats recherche -->
-  <div id="search-results">
-    <!-- Les résultats apparaîtront ici dynamiquement -->
-  </div>
+  <main>
+    <div id="search-results"></div>
+  </main>
 
-  <!-- Script -->
   <script type="module" src="script.js"></script>
 </body>
 </html>

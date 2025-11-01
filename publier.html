@@ -1,65 +1,47 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Publier un niveau</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>Publier un niveau</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="publish-container">
-  <h2>Publier un niveau</h2>
-  <form id="publish-form">
-    <input type="text" id="title" placeholder="Nom du niveau" required>
-    <textarea id="description" placeholder="Description" required></textarea>
-    <input type="file" id="image" accept="image/*">
+  <h1>Publier un niveau</h1>
+  <form id="publish-form" enctype="multipart/form-data">
+    <input type="text" name="title" placeholder="Titre" required>
+    <textarea name="description" placeholder="Description"></textarea>
+    <input type="file" name="jsonFile" accept=".json" required>
+    <input type="file" name="image1" accept="image/*">
+    <input type="file" name="image2" accept="image/*">
+    <input type="file" name="image3" accept="image/*">
     <button type="submit">Publier</button>
   </form>
-</div>
+  <script type="module">
+    import { API_URL, user } from './script.js';
 
-<script type="module">
-import { API_URL, user } from './script.js';
+    if(!user) window.location.href="connexion.html";
 
-if(!user) {
-  alert("Vous devez être connecté !");
-  window.location.href = "connexion.html";
-}
+    document.getElementById("publish-form").addEventListener("submit", async e => {
+      e.preventDefault();
+      const form = e.target;
+      const formData = new FormData(form);
 
-document.getElementById('publish-form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const title = document.getElementById('title').value.trim();
-  const description = document.getElementById('description').value.trim();
-  const fileInput = document.getElementById('image');
-  let imageUrl = "";
-
-  if(fileInput.files.length > 0){
-    const formData = new FormData();
-    formData.append("file", fileInput.files[0]);
-    formData.append("upload_preset", "YOUR_CLOUDINARY_PRESET"); // change avec ton preset
-    const resCloud = await fetch("https://api.cloudinary.com/v1_1/YOUR_CLOUDINARY_NAME/image/upload", {
-      method: "POST",
-      body: formData
+      try {
+        const res = await fetch(`${API_URL}/publish`,{
+          method:"POST",
+          headers: { "Authorization": `Bearer ${user.token}` },
+          body: formData
+        });
+        const data = await res.json();
+        if(data.success){
+          alert("Niveau publié !");
+          window.location.href=`niveau.html?id=${data.levelId}`;
+        } else alert(data.message);
+      } catch(err){
+        console.error(err);
+        alert("Erreur serveur");
+      }
     });
-    const dataCloud = await resCloud.json();
-    imageUrl = dataCloud.secure_url;
-  }
-
-  try {
-    const res = await fetch(`${API_URL}/levels`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${user.token}`
-      },
-      body: JSON.stringify({ title, description, images: imageUrl?[imageUrl]:[] })
-    });
-    const data = await res.json();
-    if(data.success){
-      alert("Niveau publié !");
-      window.location.href = "index.html";
-    } else alert(data.message);
-  } catch(err){ console.error(err); alert("Erreur serveur"); }
-});
-</script>
+  </script>
 </body>
 </html>

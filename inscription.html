@@ -1,50 +1,42 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>S'inscrire</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>Inscription</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="auth-container">
-  <h2>Inscription</h2>
-  <form id="signup-form">
-    <input type="text" id="username" placeholder="Nom d'utilisateur" required>
-    <input type="email" id="email" placeholder="Email" required>
-    <input type="password" id="password" placeholder="Mot de passe" required>
+  <h1>Inscription</h1>
+  <form id="register-form">
+    <input type="text" name="username" placeholder="Nom d'utilisateur" required>
+    <input type="password" name="password" placeholder="Mot de passe" required>
     <button type="submit">S'inscrire</button>
   </form>
-  <p>Déjà un compte ? <span style="color:blue;cursor:pointer;" onclick="window.location.href='connexion.html'">Se connecter</span></p>
-</div>
+  <script type="module">
+    import { API_URL } from './script.js';
 
-<script type="module">
-import { API_URL } from './script.js';
+    document.getElementById("register-form").addEventListener("submit", async e => {
+      e.preventDefault();
+      const form = e.target;
+      const username = form.username.value;
+      const password = form.password.value;
 
-document.getElementById('signup-form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-
-  const username = document.getElementById('username').value.trim();
-  const email = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value;
-
-  try {
-    const res = await fetch(`${API_URL}/auth/register`, {
-      method: 'POST',
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, email, password })
+      try {
+        const res = await fetch(`${API_URL}/register`,{
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body: JSON.stringify({username,password})
+        });
+        const data = await res.json();
+        if(data.success){
+          alert("Inscription réussie !");
+          window.location.href="connexion.html";
+        } else alert(data.message);
+      } catch(err){
+        console.error(err);
+        alert("Erreur serveur");
+      }
     });
-
-    const data = await res.json();
-    if(data.success){
-      alert("Compte créé !");
-      window.location.href = "connexion.html";
-    } else alert(data.message);
-  } catch(err){
-    console.error(err);
-    alert("Erreur serveur");
-  }
-});
-</script>
+  </script>
 </body>
 </html>
