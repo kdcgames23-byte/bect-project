@@ -19,9 +19,10 @@
 
 <script>
 const API_URL = 'https://bect-project.onrender.com/api';
+
 document.getElementById('login-form').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const username = document.getElementById('username').value;
+  const username = document.getElementById('username').value.trim();
   const password = document.getElementById('password').value;
 
   try {
@@ -33,10 +34,8 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     const data = await res.json();
 
     if(data.success){
-      // Stockage uniforme
       localStorage.setItem('bect_user', JSON.stringify({ username: data.username, role: data.role, token: data.token }));
-      if(data.role === 'admin') window.location.href = 'admin.html';
-      else window.location.href = 'index.html';
+      window.location.href = 'index.html';
     } else {
       alert(data.message);
     }

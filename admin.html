@@ -7,68 +7,53 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header>
-  <h1>Admin BECT</h1>
-  <button id="logout-btn">Déconnexion</button>
-</header>
-
-<main>
-  <h2>Liste des utilisateurs</h2>
-  <div id="users-container"></div>
-</main>
+<div class="admin-container">
+  <h2>Administration</h2>
+  <div id="admin-levels"></div>
+</div>
 
 <script>
 const user = JSON.parse(localStorage.getItem('bect_user'));
-if(!user){ alert('Connectez-vous !'); window.location.href='connexion.html'; }
-
 const API_URL = 'https://bect-project.onrender.com/api';
 
-// Vérifier admin côté frontend (affichage)
-if(user.role !== 'admin'){
-  // on laisse quand même l'accès si tu fournis ADMIN_KEY dans header ; le backend vérifiera.
-}
+if(!user || user.role !== 'admin'){ alert('Accès refusé'); window.location.href='index.html'; }
 
-document.getElementById('logout-btn').addEventListener('click', ()=>{ localStorage.removeItem('bect_user'); window.location.href='connexion.html'; });
-
-async function fetchUsers(){
+async function loadAllLevels(){
   try{
-    const headers = { 'Authorization': `Bearer ${user.token}` };
-    // Si tu veux utiliser ADMIN_KEY côté front, ajoute: headers['admin_key'] = '20090805C0K1D2M98347TA@';
-
-    const res = await fetch(`${API_URL}/admin/users`, { headers });
+    const res = await fetch(`${API_URL}/admin/levels`, {
+      headers: { 'Authorization': `Bearer ${user.token}` }
+    });
     const data = await res.json();
-    const container = document.getElementById('users-container');
+
+    const container = document.getElementById('admin-levels');
     container.innerHTML = '';
+    data.levels.forEach(lvl => {
+      const div = document.createElement('div');
+      div.classList.add('level-card');
+      div.innerHTML = `
+        <h3>${lvl.title}</h3>
+        <p>Créateur: ${lvl.author}</p>
+        <button onclick="deleteLevel('${lvl._id}')">Supprimer</button>
+      `;
+      container.appendChild(div);
+    });
 
-    if(data.success && data.users.length){
-      data.users.forEach(u => {
-        const div = document.createElement('div');
-        div.className = 'user-card';
-        div.innerHTML = `
-          <span>${u.username}</span>
-          <button onclick="deleteUser('${u.username}')">Supprimer</button>
-        `;
-        container.appendChild(div);
-      });
-    } else {
-      container.innerHTML = "<p>Aucun utilisateur trouvé</p>";
-    }
-  } catch(e){ console.error(e); alert('Erreur serveur'); }
+  } catch(err){ console.error(err); alert('Erreur serveur'); }
 }
 
-async function deleteUser(username){
-  if(!confirm('Supprimer cet utilisateur ?')) return;
+async function deleteLevel(id){
+  if(!confirm('Supprimer ce niveau ?')) return;
   try{
-    const headers = { 'Authorization': `Bearer ${user.token}` };
-    // headers['admin_key'] = '20090805C0K1D2M98347TA@'; // si tu veux utiliser la clé admin
-    const res = await fetch(`${API_URL}/admin/users/${encodeURIComponent(username)}`, { method: 'DELETE', headers });
+    const res = await fetch(`${API_URL}/admin/levels/${id}`, {
+      method:'DELETE',
+      headers:{ 'Authorization': `Bearer ${user.token}` }
+    });
     const data = await res.json();
-    if(data.success){ alert('Utilisateur supprimé !'); fetchUsers(); }
-    else alert(data.message);
-  } catch(e){ console.error(e); alert('Erreur serveur'); }
+    if(data.success){ loadAllLevels(); } else alert(data.message);
+  } catch(err){ console.error(err); alert('Erreur serveur'); }
 }
 
-fetchUsers();
+loadAllLevels();
 </script>
 </body>
 </html>

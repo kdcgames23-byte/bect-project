@@ -19,10 +19,16 @@
 
 <script>
 const API_URL = 'https://bect-project.onrender.com/api';
+
 document.getElementById('register-form').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const username = document.getElementById('username').value;
+  const username = document.getElementById('username').value.trim();
   const password = document.getElementById('password').value;
+
+  if(password.length < 8 || password === username){
+    alert("Mot de passe minimum 8 caractères et différent du nom d'utilisateur.");
+    return;
+  }
 
   try {
     const res = await fetch(`${API_URL}/register`, {
@@ -33,6 +39,7 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
     const data = await res.json();
 
     if(data.success){
+      localStorage.setItem('bect_user', JSON.stringify({ username, role: 'user', token: null }));
       alert('Inscription réussie ! Connectez-vous.');
       window.location.href = 'connexion.html';
     } else {

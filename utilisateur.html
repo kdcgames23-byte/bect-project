@@ -7,59 +7,36 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header>
-  <h1>BECT</h1>
-  <div class="user-info">
-    <span id="username-display"></span>
-    <button id="logout-btn">Déconnexion</button>
-  </div>
-</header>
-
-<main>
-  <h2>Mes niveaux</h2>
-  <div id="levels-container"></div>
-</main>
+<div class="profile-container">
+  <h2>Profil utilisateur</h2>
+  <div id="profile-info"></div>
+</div>
 
 <script>
 const user = JSON.parse(localStorage.getItem('bect_user'));
-if(!user){ alert('Connectez-vous d\'abord !'); window.location.href='connexion.html'; }
-else document.getElementById('username-display').textContent = user.username;
-
-document.getElementById('logout-btn').addEventListener('click', ()=>{ localStorage.removeItem('bect_user'); window.location.href='connexion.html'; });
-
 const API_URL = 'https://bect-project.onrender.com/api';
-const params = new URLSearchParams(window.location.search);
-const usernameQuery = params.get('username') || user.username;
 
-async function fetchLevels(){
+if(!user){ alert('Connectez-vous'); window.location.href='connexion.html'; }
+
+async function loadProfile(){
   try{
-    const res = await fetch(`${API_URL}/user-levels?username=${encodeURIComponent(usernameQuery)}`, { headers: { 'Authorization': `Bearer ${user.token}` } });
+    const res = await fetch(`${API_URL}/user/${user.username}`, {
+      headers: { 'Authorization': `Bearer ${user.token}` }
+    });
     const data = await res.json();
-    const container = document.getElementById('levels-container');
-    container.innerHTML = '';
+    if(data.success){
+      const div = document.getElementById('profile-info');
+      div.innerHTML = `
+        <p>Nom: ${data.user.username}</p>
+        <p>Rôle: ${data.user.role}</p>
+        <p>Niveaux publiés: ${data.user.levels.length}</p>
+      `;
+    } else alert(data.message);
 
-    if(data.success && data.levels.length){
-      data.levels.forEach(level => {
-        const div = document.createElement('div');
-        div.className = 'level-card';
-        div.innerHTML = `
-          <h3>${level.title}</h3>
-          <div class="images">
-            ${level.images.map(img => `<img src="${img}" />`).join('')}
-          </div>
-          <p>${level.description || ''}</p>
-          <a href="${level.jsonUrl}" download="${level.title}.json"><button>Télécharger JSON</button></a>
-          <a href="niveau.html?id=${level._id}"><button>Voir</button></a>
-        `;
-        container.appendChild(div);
-      });
-    } else {
-      container.innerHTML = "<p>Aucun niveau publié. <a href='publier.html'>Créer un niveau</a></p>";
-    }
-  } catch(e){ console.error(e); alert('Erreur serveur'); }
+  } catch(err){ console.error(err); alert('Erreur serveur'); }
 }
 
-fetchLevels();
+loadProfile();
 </script>
 </body>
 </html>
