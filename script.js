@@ -1,7 +1,8 @@
+// --- Configuration API ---
 export const API_URL = "https://bect-project.onrender.com/api";
 export const user = JSON.parse(localStorage.getItem("bect_user"));
 
-// DOM
+// --- DOM ---
 const btnLogin = document.getElementById("btn-login");
 const btnRegister = document.getElementById("btn-register");
 const btnLogout = document.getElementById("btn-logout");
@@ -12,7 +13,7 @@ const searchInput = document.getElementById("search-input");
 const btnSearch = document.getElementById("btn-search");
 const searchResults = document.getElementById("search-results");
 
-// --- Affichage boutons ---
+// --- Affichage des boutons ---
 if(user){
   btnLogin?.style.setProperty("display","none");
   btnRegister?.style.setProperty("display","none");
@@ -34,8 +35,10 @@ btnLogout?.addEventListener("click",()=>{
   window.location.reload();
 });
 btnPublish?.addEventListener("click",()=>{
-  if(!user){ alert("Connectez-vous"); window.location.href="connexion.html"; }
-  else window.location.href="publier.html";
+  if(!user){ 
+    alert("Connectez-vous"); 
+    window.location.href="connexion.html"; 
+  } else window.location.href="publier.html";
 });
 btnAdmin?.addEventListener("click",()=>window.location.href="admin.html");
 usernameDisplay?.addEventListener("click",()=>{
@@ -87,10 +90,13 @@ btnSearch?.addEventListener("click", async()=>{
   try{
     const res = await fetch(`${API_URL}/search?query=${encodeURIComponent(query)}`);
     const data = await res.json();
-    if(!data||data.length===0){ searchResults.innerHTML="<p>Aucun résultat</p>"; return; }
+    if(!data||data.length===0){ 
+      searchResults.innerHTML="<p>Aucun résultat</p>"; 
+      return; 
+    }
     searchResults.innerHTML="";
     data.forEach(item=>{
-      const div=document.createElement("div");
+      const div = document.createElement("div");
       div.classList.add("result-item");
       const img = item.images?.[0]||'';
       div.innerHTML=`
@@ -98,8 +104,12 @@ btnSearch?.addEventListener("click", async()=>{
         <h3 style="cursor:pointer;">${item.title}</h3>
         <p>Créé par : <span class="creator-name" data-creator="${item.creator}">${item.creator}</span></p>
       `;
-      div.querySelector('.creator-name')?.addEventListener('click',()=>{ window.location.href=`utilisateur.html?username=${encodeURIComponent(item.creator)}`; });
-      div.querySelector('h3')?.addEventListener('click',()=>{ window.location.href=`niveau.html?id=${encodeURIComponent(item._id)}`; });
+      div.querySelector('.creator-name')?.addEventListener('click',()=>{
+        window.location.href=`utilisateur.html?username=${encodeURIComponent(item.creator)}`;
+      });
+      div.querySelector('h3')?.addEventListener('click',()=>{
+        window.location.href=`niveau.html?id=${encodeURIComponent(item._id)}`;
+      });
       searchResults.appendChild(div);
     });
   }catch(err){
