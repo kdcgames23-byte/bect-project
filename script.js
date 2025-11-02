@@ -1,4 +1,4 @@
-export const API_URL = "https://bect-project.onrender.com/";
+export const API_URL = "https://bect-project.onrender.com/api";
 export const user = JSON.parse(localStorage.getItem("bect_user"));
 
 // DOM
@@ -45,7 +45,7 @@ usernameDisplay?.addEventListener("click",()=>{
 // --- Fonctions pour inscription et connexion ---
 export async function registerUser(username,password){
   try{
-    const res = await fetch(`${API_URL}/register`,{
+    const res = await fetch(`${API_URL}/inscrition`,{
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({username,password})
@@ -59,7 +59,7 @@ export async function registerUser(username,password){
 
 export async function loginUser(username,password){
   try{
-    const res = await fetch(`${API_URL}/login`,{
+    const res = await fetch(`${API_URL}/connexion`,{
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({username,password})
