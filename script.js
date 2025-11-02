@@ -11,38 +11,44 @@ const usernameDisplay = document.getElementById("username-display");
 const searchInput = document.getElementById("search-input");
 const btnSearch = document.getElementById("btn-search");
 const searchResults = document.getElementById("search-results");
+const userInfo = document.getElementById("user-info");
 
 // --- Affichage boutons ---
-if(user){
-  btnLogin?.style.setProperty("display","none");
-  btnRegister?.style.setProperty("display","none");
-  btnPublish?.style.setProperty("display","inline");
-  usernameDisplay.textContent = user.username;
-  if(user.role==="admin") btnAdmin?.style.setProperty("display","inline");
-} else {
-  btnLogin?.style.setProperty("display","inline");
-  btnRegister?.style.setProperty("display","inline");
-  btnPublish?.style.setProperty("display","none");
-  btnAdmin?.style.setProperty("display","none");
+function updateNav(){
+  if(user){
+    btnLogin.style.display = "none";
+    btnRegister.style.display = "none";
+    btnPublish.style.display = "inline";
+    usernameDisplay.textContent = user.username;
+    userInfo.style.display = "inline";
+    btnAdmin.style.display = user.role==="admin" ? "inline" : "none";
+  } else {
+    btnLogin.style.display = "inline";
+    btnRegister.style.display = "inline";
+    btnPublish.style.display = "none";
+    btnAdmin.style.display = "none";
+    userInfo.style.display = "none";
+  }
 }
+updateNav();
 
 // --- Navigation ---
-btnLogin?.addEventListener("click",()=>window.location.href="connexion.html");
-btnRegister?.addEventListener("click",()=>window.location.href="inscription.html");
-btnLogout?.addEventListener("click",()=>{
+btnLogin.addEventListener("click",()=>window.location.href="connexion.html");
+btnRegister.addEventListener("click",()=>window.location.href="inscription.html");
+btnLogout.addEventListener("click",()=>{
   localStorage.removeItem("bect_user");
   window.location.reload();
 });
-btnPublish?.addEventListener("click",()=>{
+btnPublish.addEventListener("click",()=>{
   if(!user){ alert("Connectez-vous"); window.location.href="connexion.html"; }
   else window.location.href="publier.html";
 });
-btnAdmin?.addEventListener("click",()=>window.location.href="admin.html");
-usernameDisplay?.addEventListener("click",()=>{
-  window.location.href=`utilisateur.html?username=${encodeURIComponent(user?.username||'')}`;
+btnAdmin.addEventListener("click",()=>window.location.href="admin.html");
+usernameDisplay.addEventListener("click",()=>{
+  window.location.href=`utilisateur.html?username=${encodeURIComponent(user.username)}`;
 });
 
-// --- Fonctions pour inscription et connexion ---
+// --- Inscription ---
 export async function registerUser(username,password){
   try{
     const res = await fetch(`${API_URL}/register`,{
@@ -50,13 +56,19 @@ export async function registerUser(username,password){
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({username,password})
     });
-    return await res.json();
+    const data = await res.json();
+    if(data.success){
+      alert("Inscription réussie !");
+      window.location.href="connexion.html";
+    }
+    return data;
   }catch(e){
     console.error("Erreur inscription:",e);
     return {success:false,message:"Erreur serveur"};
   }
 }
 
+// --- Connexion ---
 export async function loginUser(username,password){
   try{
     const res = await fetch(`${API_URL}/login`,{
@@ -71,6 +83,7 @@ export async function loginUser(username,password){
         role:data.role,
         token:data.token
       }));
+      window.location.href="index.html";
     }
     return data;
   }catch(e){
@@ -80,7 +93,7 @@ export async function loginUser(username,password){
 }
 
 // --- Recherche ---
-btnSearch?.addEventListener("click", async()=>{
+btnSearch.addEventListener("click", async()=>{
   const query = searchInput.value.trim();
   if(!query) return;
   searchResults.innerHTML="<p>Recherche en cours...</p>";
