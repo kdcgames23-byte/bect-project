@@ -1,4 +1,4 @@
-export const API_URL = "https://bect-project.onrender.com/api";
+export const API_URL = "https://bect-project.onrender.com/";
 export const user = JSON.parse(localStorage.getItem("bect_user"));
 
 // DOM
