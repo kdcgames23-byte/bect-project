@@ -101,7 +101,31 @@ async function fetchLevels() {
 
       // Clics
       div.querySelector('h3').onclick = () => window.location.href = `niveau.html?id=${level._id}`;
-      div.querySelector('.btn-dl').onclick = () => window.open(level.jsonUrl, '_blank');
+      
+      // 🚩 CORRECTION : Utilisation de fetch pour garantir que le fichier soit un blob local avant de le télécharger avec l'extension .json
+      div.querySelector('.btn-dl').onclick = async () => {
+        if (!level.jsonUrl) return alert("Fichier JSON non trouvé.");
+        
+        try {
+          const response = await fetch(level.jsonUrl);
+          if (!response.ok) throw new Error(`Erreur lors du téléchargement: ${response.status}`);
+            
+          const blob = await response.blob(); 
+          const url = URL.createObjectURL(blob);
+            
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `${level.title}.json`; // <-- Cible de la correction : Garantit l'extension .json
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+            
+        } catch(error) {
+          console.error('Download error:', error);
+          alert("Erreur lors du téléchargement du fichier.");
+        }
+      };
       
       const btnDel = div.querySelector('.btn-del');
       if(btnDel){
@@ -113,17 +137,24 @@ async function fetchLevels() {
                method: "DELETE",
                headers: { "Authorization": `Bearer ${user.token}` }
              });
+             
+             // Gérer le cas où le serveur renvoie du HTML (404/401 masqué)
+             const contentType = r.headers.get("content-type");
+             if (!contentType || !contentType.includes("json")) {
+                 throw new Error(`Erreur serveur lors de la suppression (${r.status} ${r.statusText})`);
+             }
+             
              const resDel = await r.json();
              
              if(resDel.success) {
                div.remove(); // Suppression visuelle directe
                alert("Niveau supprimé !");
              } else {
-               alert("Erreur: " + resDel.message);
+               alert("Erreur: " + (resDel.message || "Erreur de suppression."));
              }
           } catch(err) {
              console.error(err);
-             alert("Erreur lors de la suppression");
+             alert("Erreur lors de la suppression: " + err.message);
           }
         };
       }

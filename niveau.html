@@ -40,7 +40,8 @@ async function loadLevel() {
   if(!id) return alert("Niveau introuvable");
 
   try {
-    const res = await fetch(`${API_URL}/levels`);
+    // Note: Pour une meilleure efficacité, vous devriez utiliser la route /api/levels/:id
+    const res = await fetch(`${API_URL}/levels`); 
     const data = await res.json();
     if(!data.success) return alert("Erreur serveur");
 
@@ -48,7 +49,13 @@ async function loadLevel() {
     if(!level) return alert("Niveau introuvable");
 
     document.getElementById("level-title").textContent = level.title;
-    document.getElementById("level-creator").textContent = "Créé par : " + level.creator;
+    
+    const creatorP = document.getElementById("level-creator");
+    creatorP.innerHTML = `Créé par : <span class="creator-name" style="color:#00d0ff;cursor:pointer;">${level.creator}</span>`;
+    creatorP.querySelector(".creator-name").addEventListener("click", () => {
+        window.location.href = `utilisateur.html?username=${encodeURIComponent(level.creator)}`;
+    });
+    
     document.getElementById("level-description").textContent = level.description || "";
 
     const imagesContainer = document.getElementById("level-images");
@@ -64,11 +71,29 @@ async function loadLevel() {
       imagesContainer.appendChild(img);
     });
 
-    document.getElementById("btn-download-json").onclick = ()=>{
-      const a = document.createElement("a");
-      a.href = level.jsonUrl;
-      a.download = `${level.title}.json`;
-      a.click();
+    // 🚩 CORRECTION : Utilisation de fetch pour garantir que le fichier soit un blob local avant de le télécharger avec l'extension .json
+    document.getElementById("btn-download-json").onclick = async ()=>{
+      if (!level.jsonUrl) return alert("Fichier JSON non trouvé.");
+
+      try {
+        const response = await fetch(level.jsonUrl);
+        if (!response.ok) throw new Error(`Erreur lors du téléchargement: ${response.status}`);
+          
+        const blob = await response.blob(); 
+        const url = URL.createObjectURL(blob);
+          
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${level.title}.json`; // <-- Cible de la correction : Garantit l'extension .json
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+          
+      } catch(error) {
+        console.error('Download error:', error);
+        alert("Erreur lors du téléchargement du fichier.");
+      }
     }
 
   } catch(err) {

@@ -1,5 +1,5 @@
 // =======================
-// script.js COMPLET (Version Finale)
+// script.js COMPLET (Version Finale avec Paramètres)
 // =======================
 
 // L'URL de base de votre API Render
@@ -13,6 +13,7 @@ const btnRegister = document.getElementById("btn-register");
 const btnLogout = document.getElementById("btn-logout");
 const btnPublish = document.getElementById("btn-publish");
 const btnAdmin = document.getElementById("btn-admin");
+const btnSettings = document.getElementById("btn-settings"); // 🚩 NOUVEAU
 const usernameDisplay = document.getElementById("username-display");
 const userInfo = document.getElementById("user-info");
 
@@ -26,6 +27,7 @@ export function updateHeader(){
     if(btnRegister) btnRegister.style.display = "none";
     if(btnPublish) btnPublish.style.display = "inline";
     if(userInfo) userInfo.style.display = "inline-flex";
+    if(btnSettings) btnSettings.style.display = "inline"; // 🚩 AFFICHER PARAMÈTRES
     if(usernameDisplay) {
       usernameDisplay.textContent = user.username;
       // Clic sur le nom -> Profil
@@ -53,6 +55,7 @@ export function updateHeader(){
     if(btnRegister) btnRegister.style.display = "inline";
     if(btnPublish) btnPublish.style.display = "none";
     if(btnAdmin) btnAdmin.style.display = "none";
+    if(btnSettings) btnSettings.style.display = "none"; // 🚩 MASQUER PARAMÈTRES
     if(userInfo) userInfo.style.display = "none";
   }
 }
@@ -77,11 +80,11 @@ async function activateAdminMode() {
       body: JSON.stringify({ key })
     });
 
-    // Vérification pour éviter l'erreur "Unexpected token <" (si le serveur renvoie du HTML)
-    const contentType = res.headers.get("content-type");
-    if (!contentType || !contentType.includes("json")) {
-        throw new Error(`Erreur serveur (${res.status} ${res.statusText}). Le serveur n'a pas renvoyé de JSON.`);
-    }
+    // Vérification pour éviter l'erreur "Unexpected token <" (si le serveur renvoie du HTML)
+    const contentType = res.headers.get("content-type");
+    if (!contentType || !contentType.includes("json")) {
+        throw new Error(`Erreur serveur (${res.status} ${res.statusText}). Le serveur n'a pas renvoyé de JSON.`);
+    }
 
     const data = await res.json();
 
@@ -113,6 +116,7 @@ if(btnLogout){
 if(btnLogin) btnLogin.onclick = () => window.location.href="connexion.html";
 if(btnRegister) btnRegister.onclick = () => window.location.href="inscription.html";
 if(btnPublish) btnPublish.onclick = () => window.location.href="publier.html";
+if(btnSettings) btnSettings.onclick = () => window.location.href="parametres.html"; // 🚩 NOUVELLE REDIRECTION
 
 // Initialisation
 document.addEventListener("DOMContentLoaded", updateHeader);

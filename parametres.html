@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paramètres du Compte</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Styles spécifiques pour cette page */
+        main { display: flex; justify-content: center; align-items: center; min-height: 80vh; flex-direction: column;}
+        form { max-width: 400px; margin-top: 20px; }
+        .form-section { 
+            background: #1e1e1e; 
+            padding: 20px; 
+            border-radius: 10px; 
+            margin-bottom: 30px; 
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 400px;
+        }
+        .form-section h2 { 
+            color: #00d0ff; 
+            border-bottom: 1px solid #333; 
+            padding-bottom: 10px; 
+            margin-bottom: 15px;
+        }
+        input, button { padding: 10px; margin-bottom: 10px; width: 100%; box-sizing: border-box; }
+        button { background: #4caf50; color: white; border: none; cursor: pointer; }
+        button:hover { background: #45a049; }
+        .warning-msg { color: #f44336; font-weight: bold; }
+        .success-msg { color: #4caf50; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>Paramètres du Compte</h1>
+
+        <div class="form-section">
+            <h2>Changer le Nom d'utilisateur</h2>
+            <form id="form-change-username">
+                <input type="text" id="new-username" placeholder="Nouveau nom d'utilisateur" required />
+                <input type="password" id="password-username" placeholder="Mot de passe actuel" required />
+                <button type="submit">Changer le Nom</button>
+                <p id="msg-username"></p>
+            </form>
+        </div>
+
+        <div class="form-section">
+            <h2>Changer le Mot de Passe</h2>
+            <form id="form-change-password">
+                <input type="password" id="current-password" placeholder="Mot de passe actuel" required />
+                <input type="password" id="new-password" placeholder="Nouveau mot de passe" required />
+                <input type="password" id="confirm-password" placeholder="Confirmer le nouveau mot de passe" required />
+                <button type="submit">Changer le Mot de Passe</button>
+                <p id="msg-password"></p>
+            </form>
+        </div>
+    </main>
+
+    <script type="module">
+        import { API_URL, user } from "./script.js";
+
+        // Rediriger si non connecté
+        if (!user) {
+            alert("Vous devez être connecté pour accéder aux paramètres.");
+            window.location.href = "connexion.html";
+        }
+
+        const formUsername = document.getElementById("form-change-username");
+        const formPassword = document.getElementById("form-change-password");
+        const msgUsername = document.getElementById("msg-username");
+        const msgPassword = document.getElementById("msg-password");
+
+        // --- 1. CHANGEMENT DE NOM D'UTILISATEUR ---
+        formUsername.addEventListener("submit", async e => {
+            e.preventDefault();
+            const newUsername = document.getElementById("new-username").value.trim();
+            const password = document.getElementById("password-username").value;
+            msgUsername.className = "warning-msg";
+            msgUsername.textContent = "Vérification...";
+
+            if (newUsername.length < 3) {
+                msgUsername.textContent = "Le nom d'utilisateur doit contenir au moins 3 caractères.";
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/user/username`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${user.token}`
+                    },
+                    body: JSON.stringify({ newUsername, password })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    // Mise à jour du localStorage et du token
+                    user.username = newUsername;
+                    user.token = data.token; // Le serveur doit renvoyer un nouveau token
+                    localStorage.setItem("bect_user", JSON.stringify(user));
+                    msgUsername.className = "success-msg";
+                    msgUsername.textContent = "✅ Nom d'utilisateur changé avec succès ! Vous serez redirigé.";
+                    setTimeout(() => window.location.href = "index.html", 1500);
+                } else {
+                    msgUsername.textContent = "❌ " + (data.message || "Erreur lors du changement de nom.");
+                }
+            } catch (err) {
+                console.error(err);
+                msgUsername.textContent = "❌ Erreur serveur ou de connexion.";
+            }
+        });
+
+        // --- 2. CHANGEMENT DE MOT DE PASSE ---
+        formPassword.addEventListener("submit", async e => {
+            e.preventDefault();
+            const currentPassword = document.getElementById("current-password").value;
+            const newPassword = document.getElementById("new-password").value;
+            const confirmPassword = document.getElementById("confirm-password").value;
+            msgPassword.className = "warning-msg";
+            msgPassword.textContent = "Vérification...";
+
+            if (newPassword !== confirmPassword) {
+                msgPassword.textContent = "Les nouveaux mots de passe ne correspondent pas.";
+                return;
+            }
+            if (newPassword.length < 6) {
+                msgPassword.textContent = "Le nouveau mot de passe doit contenir au moins 6 caractères.";
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/user/password`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${user.token}`
+                    },
+                    body: JSON.stringify({ currentPassword, newPassword })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    msgPassword.className = "success-msg";
+                    msgPassword.textContent = "✅ Mot de passe changé avec succès !";
+                    formPassword.reset();
+                } else {
+                    msgPassword.textContent = "❌ " + (data.message || "Mot de passe actuel incorrect.");
+                }
+            } catch (err) {
+                console.error(err);
+                msgPassword.textContent = "❌ Erreur serveur ou de connexion.";
+            }
+        });
+    </script>
+</body>
+</html>

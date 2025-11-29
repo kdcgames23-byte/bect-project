@@ -1,5 +1,5 @@
 // =======================================================
-// server.js VERSION FINALE CORRIGÉE (avec express.Router)
+// server.js VERSION FINALE CORRIGÉE (avec express.Router & MAJ Compte)
 // =======================================================
 
 import express from "express";
@@ -20,7 +20,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const apiRouter = express.Router(); // 🚩 NOUVEAU: ROUTEUR DÉDIÉ POUR TOUTES LES ROUTES API
+const apiRouter = express.Router(); 
 
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
@@ -60,7 +60,6 @@ const Level = mongoose.model("Level", levelSchema);
 function auth(req, res, next){
   const token = req.headers.authorization?.split(" ")[1];
   
-  // Log de débogage pour voir si le token arrive pour les routes protégées
   console.log(`[AUTH] Checking path: ${req.path}. Token present: ${!!token}`); 
 
   if (!token) return res.status(401).json({ success:false, message:"Token manquant" });
@@ -106,7 +105,7 @@ async function deleteCloudinaryFiles(level) {
 }
 
 // =======================================================
-// 6. DÉFINITION DES ROUTES SUR LE ROUTEUR (SANS LE /api)
+// 6. DÉFINITION DES ROUTES SUR LE ROUTEUR
 // =======================================================
 
 // --- AUTH ---
@@ -158,6 +157,69 @@ apiRouter.post("/become-admin", auth, async (req, res) => {
 
   res.json({ success: true, token: newToken, role: "admin" });
 });
+
+// --- NOUVELLES ROUTES UTILISATEUR (MOT DE PASSE & PSEUDO) ---
+
+// Modification du nom d'utilisateur 🚩 NOUVEAU
+apiRouter.put("/user/username", auth, async (req, res) => {
+    try {
+        const { newUsername, password } = req.body;
+
+        if (await User.findOne({ username: newUsername })) {
+            return res.status(400).json({ success: false, message: "Ce nom d'utilisateur est déjà utilisé." });
+        }
+
+        const user = await User.findById(req.user.id);
+        if (!user || !(await bcrypt.compare(password, user.password))) {
+            return res.status(401).json({ success: false, message: "Mot de passe actuel incorrect." });
+        }
+
+        // Mettre à jour le nom d'utilisateur et les niveaux associés
+        const oldUsername = user.username;
+        user.username = newUsername;
+        await user.save();
+
+        await Level.updateMany(
+            { creator: oldUsername }, 
+            { $set: { creator: newUsername } }
+        );
+
+        // Créer et renvoyer un nouveau token
+        const newToken = jwt.sign(
+            { id: user._id, username: user.username, role: user.role },
+            process.env.JWT_SECRET,
+            { expiresIn: "30d" }
+        );
+
+        res.json({ success: true, message: "Nom d'utilisateur mis à jour", token: newToken });
+    } catch (e) {
+        console.error("Erreur mise à jour username:", e);
+        res.status(500).json({ success: false, message: "Erreur serveur interne." });
+    }
+});
+
+// Modification du mot de passe 🚩 NOUVEAU
+apiRouter.put("/user/password", auth, async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+
+        const user = await User.findById(req.user.id);
+
+        if (!user || !(await bcrypt.compare(currentPassword, user.password))) {
+            return res.status(401).json({ success: false, message: "Mot de passe actuel incorrect." });
+        }
+
+        const hashed = await bcrypt.hash(newPassword, 10);
+        user.password = hashed;
+        await user.save();
+
+        res.json({ success: true, message: "Mot de passe mis à jour." });
+    } catch (e) {
+        console.error("Erreur mise à jour mot de passe:", e);
+        res.status(500).json({ success: false, message: "Erreur serveur interne." });
+    }
+});
+
 
 // --- NIVEAUX ---
 apiRouter.post("/publish", auth, upload.fields([
@@ -254,18 +316,23 @@ apiRouter.delete("/admin/users/:username", auth, async (req, res) => {
 });
 
 // =======================================================
-// 7. ENREGISTREMENT DU ROUTEUR ET FICHIERS STATIQUES
+// 7. ENREGISTREMENT DU ROUTEUR ET FICHIERS STATIQUES (CORRIGÉ)
 // =======================================================
 
-// 🚩 7A. ENREGISTREMENT DU ROUTEUR API (AVANT TOUT FICHIER STATIQUE)
+// 🚩 CORRECTION : Pointez vers le répertoire parent (bect project/) où se trouve index.html
+const projectRoot = path.resolve(__dirname, '..'); 
+
+// 7A. ENREGISTREMENT DU ROUTEUR API (AVANT TOUT FICHIER STATIQUE)
 app.use("/api", apiRouter);
 
 // 7B. FICHIERS STATIQUES
-app.use(express.static(__dirname));
+// Sert les fichiers statiques (frontend: index.html, style.css, script.js) depuis le répertoire racine
+app.use(express.static(projectRoot));
 
 // 7C. ROUTE CATCH-ALL (DERNIÈRE)
+// Redirige toutes les requêtes non-API vers index.html, en utilisant le chemin corrigé
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
+  res.sendFile(path.join(projectRoot, "index.html"));
 });
 
 // START
