@@ -3,32 +3,78 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Niveau</title>
+<title>BECT - Niveau</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div id="level-container"></div>
+<header>
+  <div id="user-info" style="display:none;">
+    <span id="username-display" style="cursor:pointer;"></span>
+    <button id="btn-logout">Déconnexion</button>
+  </div>
+  <div>
+    <button id="btn-login">Connexion</button>
+    <button id="btn-register">Inscription</button>
+    <button id="btn-publish" style="display:none;">Publier</button>
+    <button id="btn-admin" style="display:none;">Admin</button>
+  </div>
+</header>
 
+<main>
+  <div id="level-container">
+    <h1 id="level-title"></h1>
+    <p id="level-creator"></p>
+    <p id="level-description"></p>
+    <div id="level-images"></div>
+    <button id="btn-download-json">Télécharger JSON</button>
+  </div>
+</main>
+
+<script type="module" src="script.js"></script>
 <script type="module">
 import { API_URL } from './script.js';
 
-const params = new URLSearchParams(window.location.search);
-const levelId = params.get("id");
+async function loadLevel() {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get("id");
+  if(!id) return alert("Niveau introuvable");
 
-async function loadLevel(){
-  try{
-    const res = await fetch(`${API_URL}/levels/${levelId}`);
+  try {
+    const res = await fetch(`${API_URL}/levels`);
     const data = await res.json();
-    if(!data.success) return document.getElementById('level-container').innerHTML="<p>Niveau introuvable</p>";
+    if(!data.success) return alert("Erreur serveur");
 
-    const container = document.getElementById('level-container');
-    container.innerHTML=`
-      <h2>${data.level.title}</h2>
-      <p>${data.level.description}</p>
-      ${data.level.images.map(img=>`<img src="${img}" alt="image" style="width:300px;height:auto;margin:5px;border-radius:8px">`).join('')}
-      <p>Créé par <span style="cursor:pointer;color:blue;" onclick="window.location.href='utilisateur.html?username=${data.level.creator}'">${data.level.creator}</span></p>
-    `;
-  } catch(err){ console.error(err); document.getElementById('level-container').innerHTML="<p>Erreur serveur</p>"; }
+    const level = data.levels.find(l => l._id === id);
+    if(!level) return alert("Niveau introuvable");
+
+    document.getElementById("level-title").textContent = level.title;
+    document.getElementById("level-creator").textContent = "Créé par : " + level.creator;
+    document.getElementById("level-description").textContent = level.description || "";
+
+    const imagesContainer = document.getElementById("level-images");
+    imagesContainer.innerHTML = "";
+    (level.images || []).forEach(url=>{
+      const img = document.createElement("img");
+      img.src = url;
+      img.style.width = "200px";
+      img.style.height = "150px";
+      img.style.objectFit = "cover";
+      img.style.marginRight = "10px";
+      img.onerror = ()=> img.src="https://via.placeholder.com/200x150?text=Image";
+      imagesContainer.appendChild(img);
+    });
+
+    document.getElementById("btn-download-json").onclick = ()=>{
+      const a = document.createElement("a");
+      a.href = level.jsonUrl;
+      a.download = `${level.title}.json`;
+      a.click();
+    }
+
+  } catch(err) {
+    console.error(err);
+    alert("Erreur chargement du niveau");
+  }
 }
 
 loadLevel();

@@ -3,52 +3,155 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BECT - Publier Niveau</title>
+<title>Publier un niveau - BECT</title>
 <link rel="stylesheet" href="style.css">
+<style>
+  body { font-family: Arial, sans-serif; padding: 20px; background: #121212; color: #eee; }
+  h1 { text-align: center; margin-bottom: 20px; }
+  form { max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; background: #1e1e1e; padding: 20px; border-radius: 10px; }
+  input, textarea, button { padding: 10px; border-radius: 6px; border: none; font-size: 16px; }
+  input, textarea { background: #2c2c2c; color: #eee; }
+  button { background: #4caf50; color: white; cursor: pointer; transition: 0.3s; }
+  button:hover { background: #45a049; }
+  #msg { text-align: center; margin-top: 10px; font-weight: bold; }
+  .limit-warning { font-size: 13px; color: #f44336; }
+</style>
 </head>
 <body>
+
 <h1>Publier un niveau</h1>
-<form id="publish-form" enctype="multipart/form-data">
-  <input type="text" id="level-title" placeholder="Titre du niveau" required>
-  <textarea id="level-desc" placeholder="Description"></textarea>
-  <input type="file" id="json-file" accept=".json" required>
-  <input type="file" id="img1" accept="image/*">
-  <input type="file" id="img2" accept="image/*">
-  <input type="file" id="img3" accept="image/*">
-  <button type="submit">Publier</button>
+<p id="username-display" style="text-align:center; margin-bottom:15px;"></p>
+
+<form id="form-publish" onsubmit="return false;">
+  <input type="text" id="title" placeholder="Titre du niveau (max 10 caractères)" required />
+  <p id="title-warning" class="limit-warning"></p>
+
+  <textarea id="description" placeholder="Description du niveau (max 100 caractères)" rows="4"></textarea>
+  <p id="desc-warning" class="limit-warning"></p>
+
+  <label>Fichier JSON du niveau :</label>
+  <input type="file" id="jsonFile" accept=".json" required />
+
+  <label>Image 1 :</label>
+  <input type="file" id="image1" accept="image/*" />
+  <label>Image 2 :</label>
+  <input type="file" id="image2" accept="image/*" />
+  <label>Image 3 :</label>
+  <input type="file" id="image3" accept="image/*" />
+
+  <button id="btn-publish-level" type="button">Publier</button>
+  <p id="msg"></p>
 </form>
-<p id="publish-msg"></p>
 
 <script type="module">
-import { API_URL, user } from './script.js';
+const API_URL = "https://bect-project.onrender.com/api";
+let user = JSON.parse(localStorage.getItem("bect_user"));
 
-const form = document.getElementById('publish-form');
-const msg = document.getElementById('publish-msg');
+const usernameDisplay = document.getElementById("username-display");
+if(user){
+  usernameDisplay.textContent = `Connecté en tant que : ${user.username}`;
+} else {
+  alert("Vous devez être connecté pour publier !");
+  window.location.href = "connexion.html";
+}
 
-form.addEventListener('submit', async(e)=>{
-  e.preventDefault();
-  if(!user){ alert('Connectez-vous'); return; }
+const btn = document.getElementById('btn-publish-level');
+const msg = document.getElementById('msg');
+
+// === Blocage direct pendant la saisie ===
+const titleInput = document.getElementById("title");
+const descInput = document.getElementById("description");
+const titleWarn = document.getElementById("title-warning");
+const descWarn = document.getElementById("desc-warning");
+
+titleInput.addEventListener("input", () => {
+  if (titleInput.value.length > 10) {
+    titleWarn.textContent = "Le titre ne doit pas dépasser 10 caractères.";
+    titleInput.value = titleInput.value.slice(0, 10);
+  } else {
+    titleWarn.textContent = "";
+  }
+});
+
+descInput.addEventListener("input", () => {
+  if (descInput.value.length > 100) {
+    descWarn.textContent = "La description ne doit pas dépasser 100 caractères.";
+    descInput.value = descInput.value.slice(0, 100);
+  } else {
+    descWarn.textContent = "";
+  }
+});
+
+// === Envoi du formulaire ===
+btn.addEventListener('click', async ()=>{
+  let title = titleInput.value.trim();
+  let description = descInput.value.trim();
+  const jsonFile = document.getElementById("jsonFile").files[0];
+  const img1 = document.getElementById("image1").files[0];
+  const img2 = document.getElementById("image2").files[0];
+  const img3 = document.getElementById("image3").files[0];
+
+  // === Vérifications ===
+  if(!title || !jsonFile){
+    msg.style.color = "#f44336";
+    msg.textContent = "Veuillez fournir un titre et un fichier JSON.";
+    return;
+  }
+
+  if(!img1 && !img2 && !img3){
+    msg.style.color = "#f44336";
+    msg.textContent = "Vous devez ajouter au moins une image.";
+    return;
+  }
+
+  if (title.length > 10) {
+    msg.style.color = "#f44336";
+    msg.textContent = "Le titre ne doit pas dépasser 10 caractères.";
+    return;
+  }
+
+  if (description.length > 100) {
+    msg.style.color = "#f44336";
+    msg.textContent = "La description ne doit pas dépasser 100 caractères.";
+    return;
+  }
+
   const formData = new FormData();
-  formData.append('title', document.getElementById('level-title').value);
-  formData.append('description', document.getElementById('level-desc').value);
-  formData.append('jsonFile', document.getElementById('json-file').files[0]);
-  if(document.getElementById('img1').files[0]) formData.append('image1', document.getElementById('img1').files[0]);
-  if(document.getElementById('img2').files[0]) formData.append('image2', document.getElementById('img2').files[0]);
-  if(document.getElementById('img3').files[0]) formData.append('image3', document.getElementById('img3').files[0]);
+  formData.append("title", title);
+  formData.append("description", description);
+  formData.append("jsonFile", jsonFile);
+  if(img1) formData.append("image1", img1);
+  if(img2) formData.append("image2", img2);
+  if(img3) formData.append("image3", img3);
+
+  msg.style.color = "#fff";
+  msg.textContent = "Envoi en cours...";
 
   try{
-    const res = await fetch(`${API_URL}/publish`,{
-      method:'POST',
-      headers:{ Authorization:`Bearer ${user.token}` },
+    const res = await fetch(`${API_URL}/publish`, {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${user.token}` },
       body: formData
     });
     const data = await res.json();
-    msg.textContent = data.success ? 'Publié avec succès !' : data.message;
-  }catch(e){
-    console.error(e);
-    msg.textContent='Erreur serveur';
+
+    if(data.success){
+      msg.style.color = "#4caf50";
+      msg.textContent = "Niveau publié avec succès !";
+      document.getElementById('form-publish').reset();
+      titleWarn.textContent = "";
+      descWarn.textContent = "";
+    } else {
+      msg.style.color = "#f44336";
+      msg.textContent = data.message || "Erreur lors de la publication";
+    }
+  } catch(err){
+    console.error(err);
+    msg.style.color = "#f44336";
+    msg.textContent = "Erreur serveur";
   }
 });
 </script>
+
 </body>
 </html>

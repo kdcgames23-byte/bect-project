@@ -3,35 +3,140 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BECT - Profil utilisateur</title>
+<title>BECT - Profil</title>
 <link rel="stylesheet" href="style.css">
+<style>
+  .level-card { background: #1e1e1e; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #333; }
+  .level-card h3 { margin: 0 0 10px 0; color: #ffa500; cursor: pointer; }
+  .btn-group { margin-top: 10px; display: flex; gap: 10px; }
+  .btn-dl { background: #4caf50; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
+  .btn-del { background: #f44336; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
+</style>
 </head>
 <body>
-<h1>Profil de <span id="profile-name"></span></h1>
-<div id="user-levels"></div>
+
+<header>
+  <button onclick="location.href='index.html'">⬅ Accueil</button>
+  <h1 style="margin-left: 20px;">Profil de <span id="profile-name" style="color:#00d0ff;"></span></h1>
+</header>
+
+<div style="padding: 20px;">
+  <button id="btn-publish-level" style="display:none; margin-bottom: 20px; background:#2196F3; color:white; padding:10px; border:none; border-radius:5px; cursor:pointer;">
+    📤 Publier un nouveau niveau
+  </button>
+  
+  <h2>Niveaux publiés :</h2>
+  <div id="user-levels">Chargement...</div>
+</div>
 
 <script type="module">
-import { API_URL } from './script.js';
+import { API_URL, user } from './script.js';
 
+// Récupération du nom dans l'URL (ex: ?username=konate)
 const urlParams = new URLSearchParams(window.location.search);
-const username = urlParams.get('username');
-document.getElementById('profile-name').textContent=username;
+const profileUsername = urlParams.get('username');
+document.getElementById('profile-name').textContent = profileUsername || "Inconnu";
 
-async function fetchLevels(){
-  try{
-    const res = await fetch(`${API_URL}/user-levels?username=${encodeURIComponent(username)}`);
+const btnPublish = document.getElementById('btn-publish-level');
+const container = document.getElementById('user-levels');
+
+// Afficher bouton Publier seulement si c'est MON profil
+if (user && user.username === profileUsername) {
+  btnPublish.style.display = "inline-block";
+  btnPublish.onclick = () => window.location.href = 'publier.html';
+}
+
+async function fetchLevels() {
+  if (!profileUsername) {
+    container.innerHTML = "<p>Utilisateur non spécifié.</p>";
+    return;
+  }
+
+  try {
+    // APPEL CORRECT À L'API AVEC LE FILTRE
+    console.log(`Chargement des niveaux pour : ${profileUsername}`);
+    const res = await fetch(`${API_URL}/levels?creator=${encodeURIComponent(profileUsername)}`);
+    
+    // Vérification si réponse HTML (le problème que tu avais avant)
+    const contentType = res.headers.get("content-type");
+    if (contentType && contentType.indexOf("application/json") === -1) {
+        throw new Error("Le serveur a renvoyé du HTML au lieu du JSON (Erreur 404 probable)");
+    }
+
     const data = await res.json();
-    const container = document.getElementById('user-levels');
-    container.innerHTML='';
-    data.levels.forEach(l=>{
-      const div=document.createElement('div');
-      div.innerHTML=`<h3>${l.title}</h3><p>${l.description}</p>`;
+    
+    container.innerHTML = '';
+    
+    if (!data.success || !data.levels || data.levels.length === 0) {
+      container.innerHTML = "<p>Aucun niveau publié par cet utilisateur.</p>";
+      return;
+    }
+
+    // Filtrage de sécurité côté client (au cas où le serveur renvoie tout)
+    const myLevels = data.levels.filter(lvl => lvl.creator === profileUsername);
+
+    if (myLevels.length === 0) {
+      container.innerHTML = "<p>Aucun niveau trouvé pour cet utilisateur.</p>";
+      return;
+    }
+
+    myLevels.forEach(level => {
+      const div = document.createElement('div');
+      div.className = "level-card";
+      
+      let deleteBtnHTML = '';
+      // Logique pour le bouton Supprimer
+      if (user && (user.username === level.creator || user.role === "admin")) {
+        deleteBtnHTML = `<button class="btn-del">Supprimer</button>`;
+      }
+
+      div.innerHTML = `
+        <h3>${level.title}</h3>
+        <p>${level.description || "Pas de description"}</p>
+        <div class="btn-group">
+          <button class="btn-dl">Télécharger</button>
+          ${deleteBtnHTML}
+        </div>
+      `;
+
+      // Clics
+      div.querySelector('h3').onclick = () => window.location.href = `niveau.html?id=${level._id}`;
+      div.querySelector('.btn-dl').onclick = () => window.open(level.jsonUrl, '_blank');
+      
+      const btnDel = div.querySelector('.btn-del');
+      if(btnDel){
+        btnDel.onclick = async () => {
+          if(!confirm("Voulez-vous vraiment supprimer ce niveau ?")) return;
+          
+          try {
+             const r = await fetch(`${API_URL}/levels/${level._id}`, {
+               method: "DELETE",
+               headers: { "Authorization": `Bearer ${user.token}` }
+             });
+             const resDel = await r.json();
+             
+             if(resDel.success) {
+               div.remove(); // Suppression visuelle directe
+               alert("Niveau supprimé !");
+             } else {
+               alert("Erreur: " + resDel.message);
+             }
+          } catch(err) {
+             console.error(err);
+             alert("Erreur lors de la suppression");
+          }
+        };
+      }
+
       container.appendChild(div);
     });
-  }catch(e){
+
+  } catch (e) {
     console.error(e);
+    container.innerHTML = `<p style="color:red">Erreur : ${e.message}</p>`;
   }
 }
+
 fetchLevels();
 </script>
 </body>

@@ -1,3 +1,13 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inscription</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<h1>Inscription</h1>
 <form id="form-register">
   <input type="text" id="username" placeholder="Nom d'utilisateur" required />
   <input type="password" id="password" placeholder="Mot de passe" required />
@@ -24,6 +34,7 @@ form.addEventListener("submit", async e => {
     });
     const data = await res.json();
     msg.textContent = data.message;
+
     if(data.success) setTimeout(()=>window.location.href="connexion.html", 1000);
   } catch(err){
     msg.textContent = "Erreur serveur";
@@ -31,3 +42,5 @@ form.addEventListener("submit", async e => {
   }
 });
 </script>
+</body>
+</html>
