@@ -1,1 +1,237 @@
-<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Publier un niveau - BECT</title><link rel="stylesheet" href="style.css"><style>body{font-family:Arial,sans-serif;padding:20px;background:#121212;color:#eee}h1{text-align:center;margin-bottom:20px}form{max-width:500px;margin:0 auto;display:flex;flex-direction:column;gap:12px;background:#1e1e1e;padding:20px;border-radius:10px}input,textarea,button{padding:10px;border-radius:6px;border:none;font-size:16px}input,textarea{background:#2c2c2c;color:#eee}button{background:#4caf50;color:#fff;cursor:pointer;transition:.3s}button:hover{background:#45a049}#msg{text-align:center;margin-top:10px;font-weight:700}.limit-warning{font-size:13px;color:#f44336}</style></head><body><h1>Publier un niveau</h1><p id="username-display" style="text-align:center;margin-bottom:15px;"></p><form id="form-publish" onsubmit="return false;"><input type="text" id="title" placeholder="Titre du niveau (max 10 caractères)" required><p id="title-warning" class="limit-warning"></p><textarea id="description" placeholder="Description du niveau (max 100 caractères)" rows="4"></textarea><p id="desc-warning" class="limit-warning"></p><label>Fichier JSON du niveau :</label><input type="file" id="jsonFile" accept=".json" required><label>Image 1 (Miniature) :</label><input type="file" id="image1" accept="image/*"><label>Image 2 :</label><input type="file" id="image2" accept="image/*"><label>Image 3 :</label><input type="file" id="image3" accept="image/*"><button id="btn-publish-level" type="button">Publier</button><p id="msg"></p></form><script type="module">const API_URL = "https://bect-project.onrender.com/api";let user = JSON.parse(localStorage.getItem("bect_user"));const usernameDisplay = document.getElementById("username-display");if(user){usernameDisplay.textContent = `Connecté en tant que : ${user.username}`;}else{alert("Vous devez être connecté pour publier !");window.location.href = "connexion.html";}const btn = document.getElementById('btn-publish-level');const msg = document.getElementById('msg');const titleInput = document.getElementById("title");const descInput = document.getElementById("description");const titleWarn = document.getElementById("title-warning");const descWarn = document.getElementById("desc-warning");titleInput.addEventListener("input",()=>{if(titleInput.value.length > 10){titleWarn.textContent = "Le titre ne doit pas dépasser 10 caractères.";titleInput.value = titleInput.value.slice(0,10);}else{titleWarn.textContent = "";}});descInput.addEventListener("input",()=>{if(descInput.value.length > 100){descWarn.textContent = "La description ne doit pas dépasser 100 caractères.";descInput.value = descInput.value.slice(0,100);}else{descWarn.textContent = "";}});function checkForbiddenWords(text){const forbiddenWords = ["pute","connard","sexe","viols","porn","nu","enculé","viol","bais","seins","couilles","cul","salope","sodomie","baiser","branler","pénis","vagin","nichon","clitoris","sperme","éjaculation","fellatio","cuni","masturber","coït","inceste","pédophilie","zoophilie","drogue","cocaïne","héroïne","crack","cannabis","meurtre","tuer","raciste","nègre","juif","arabe","gouine","pd","sale","merde","gros mot","niquer","chier","tabarnak","hostie","milf","nudes","fuck","dick","pussy","ass","tits","cunt","whore","slut","cock","vagina","penis","nsfw","sex","rape","anal","bdsm","faggot","gay","lesbian","weed","coke","heroin","shit","kill","murder","nigger","kike","pornography","blowjob","jizz","cumshot","gangbang","incest","child abuse","pedo","zoophile","groping","molest","bitch","douchebag","goddamn","asshole","puta","joder","coño","culo","pene","vagina","mierda","cabrón","chingar","teta","pollas","gilipollas","maricón","violar","follar","cazzo","figa","puttana","troia","merda","stronzo","frocio","scopare","vaffanculo","coglione","sesso","violenza","fotze","wichser","arschloch","schwanz","muschi","ficken","scheiße","vergewaltigung","hure","nutte","titten","schwul","puta","caralho","fodase","pica","cu","bosta","violar","foder","buceta","porra","chupar","vagabunda","nsfw","milf","bdsm","hentai","sexo","guro","snuff","gore","lolicon","shota","drugs","4chan","gore","loli"];const normalizedText = text.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"");const words = normalizedText.split(/\s+/).filter(word=>word.length > 2);for(const word of words){if(forbiddenWords.includes(word)){return word;}}return null;}btn.addEventListener('click',async()=>{let title = titleInput.value.trim();let description = descInput.value.trim();const jsonFile = document.getElementById("jsonFile").files[0];const img1 = document.getElementById("image1").files[0];const img2 = document.getElementById("image2").files[0];const img3 = document.getElementById("image3").files[0];if(!title || !jsonFile){msg.style.color = "#f44336";msg.textContent = "Veuillez fournir un titre et un fichier JSON.";return;}if(!img1 && !img2 && !img3){msg.style.color = "#f44336";msg.textContent = "Vous devez ajouter au moins une image.";return;}if(title.length > 10 || description.length > 100){msg.style.color = "#f44336";msg.textContent = "Erreur de taille (titre max 10, description max 100).";return;}const forbiddenTitle = checkForbiddenWords(title);const forbiddenDesc = checkForbiddenWords(description);if(forbiddenTitle){msg.style.color = "#f44336";msg.textContent = `Titre refusé : Le mot "${forbiddenTitle}" n'est pas autorisé.`;return;}if(forbiddenDesc){msg.style.color = "#f44336";msg.textContent = `Description refusée : Le mot "${forbiddenDesc}" n'est pas autorisé.`;return;}const formData = new FormData();formData.append("title", title);formData.append("description", description);formData.append("jsonFile", jsonFile);if(img1)formData.append("image1", img1);if(img2)formData.append("image2", img2);if(img3)formData.append("image3", img3);msg.style.color = "#fff";msg.textContent = "Envoi et vérification du contenu en cours...";try{const res = await fetch(`${API_URL}/publish`,{method:"POST",headers:{"Authorization":`Bearer ${user.token}`},body:formData});const data = await res.json();if(data.success){msg.style.color = "#4caf50";msg.textContent = "Niveau publié avec succès ! (Vérification d'image passée si implémentée sur le serveur)";document.getElementById('form-publish').reset();titleWarn.textContent = "";descWarn.textContent = "";}else{msg.style.color = "#f44336";msg.textContent = data.message || "Erreur lors de la publication ou vérification d'image échouée (si implémentée).";}}catch(err){console.error(err);msg.style.color = "#f44336";msg.textContent = "Erreur serveur (vérifie la console pour les détails)";}});</script></body></html>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Publier un niveau - BECT</title>
+<link rel="stylesheet" href="style.css">
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
+<style>
+  body { font-family: Arial, sans-serif; padding: 20px; background: #121212; color: #eee; }
+  h1 { text-align: center; margin-bottom: 20px; }
+  form { max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; background: #1e1e1e; padding: 20px; border-radius: 10px; }
+  input, textarea, button { padding: 10px; border-radius: 6px; border: none; font-size: 16px; }
+  input, textarea { background: #2c2c2c; color: #eee; }
+  button { background: #4caf50; color: white; cursor: pointer; transition: 0.3s; }
+  button:hover { background: #45a049; }
+  #msg { text-align: center; margin-top: 10px; font-weight: bold; }
+  .limit-warning { font-size: 13px; color: #f44336; }
+</style>
+</head>
+<body>
+
+<h1>Publier un niveau</h1>
+<p id="username-display" style="text-align:center;margin-bottom:15px;"></p>
+
+<form id="form-publish" onsubmit="return false;">
+  <input type="text" id="title" placeholder="Titre du niveau (max 10 caractères)" required />
+  <p id="title-warning" class="limit-warning"></p>
+
+  <textarea id="description" placeholder="Description du niveau (max 100 caractères)" rows="4"></textarea>
+  <p id="desc-warning" class="limit-warning"></p>
+
+  <label>Fichier JSON du niveau :</label>
+  <input type="file" id="jsonFile" accept=".json" required />
+
+  <label>Image 1 (Miniature) :</label>
+  <input type="file" id="image1" accept="image/*" />
+  <label>Image 2 :</label>
+  <input type="file" id="image2" accept="image/*" />
+  <label>Image 3 :</label>
+  <input type="file" id="image3" accept="image/*" />
+
+  <button id="btn-publish-level" type="button">Publier</button>
+  <p id="msg"></p>
+</form>
+
+<script type="module">
+const API_URL = "https://bect-project.onrender.com/api";
+const MIN_SIZE_TO_COMPRESS_MB = 1; // Déclenchement de la compression à partir de 1 Mo
+const TARGET_SIZE_MB = 0.7;       // Cible de compression : 0.7 Mo
+
+let user = JSON.parse(localStorage.getItem("bect_user"));
+
+const usernameDisplay = document.getElementById("username-display");
+if(user){
+  usernameDisplay.textContent = `Connecté en tant que : ${user.username}`;
+} else {
+  alert("Vous devez être connecté pour publier !");
+  window.location.href = "connexion.html";
+}
+
+const btn = document.getElementById('btn-publish-level');
+const msg = document.getElementById('msg');
+
+// Éléments de saisie
+const titleInput = document.getElementById("title");
+const descInput = document.getElementById("description");
+const titleWarn = document.getElementById("title-warning");
+const descWarn = document.getElementById("desc-warning");
+
+// Gestion des limites de caractères
+titleInput.addEventListener("input", () => {
+  if (titleInput.value.length > 10) {
+    titleWarn.textContent = "Le titre ne doit pas dépasser 10 caractères.";
+    titleInput.value = titleInput.value.slice(0, 10);
+  } else {
+    titleWarn.textContent = "";
+  }
+});
+
+descInput.addEventListener("input", () => {
+  if (descInput.value.length > 100) {
+    descWarn.textContent = "La description ne doit pas dépasser 100 caractères.";
+    descInput.value = descInput.value.slice(0, 100);
+  } else {
+    descWarn.textContent = "";
+  }
+});
+
+// === Fonction de vérification des mots interdits (Inchagnée) ===
+function checkForbiddenWords(text) {
+    const forbiddenWords = ["pute","connard","sexe","viols","porn","nu","enculé","viol","bais","seins","couilles","cul","salope","sodomie","baiser","branler","pénis","vagin","nichon","clitoris","sperme","éjaculation","fellatio","cuni","masturber","coït","inceste","pédophilie","zoophilie","drogue","cocaïne","héroïne","crack","cannabis","meurtre","tuer","raciste","nègre","juif","arabe","gouine","pd","sale","merde","gros mot","niquer","chier","tabarnak","hostie","milf","nudes","fuck","dick","pussy","ass","tits","cunt","whore","slut","cock","vagina","penis","nsfw","sex","rape","anal","bdsm","faggot","gay","lesbian","weed","coke","heroin","shit","kill","murder","nigger","kike","pornography","blowjob","jizz","cumshot","gangbang","incest","child abuse","pedo","zoophile","groping","molest","bitch","douchebag","goddamn","asshole","puta","joder","coño","culo","pene","vagina","mierda","cabrón","chingar","teta","pollas","gilipollas","maricón","violar","follar","cazzo","figa","puttana","troia","merda","stronzo","frocio","scopare","vaffanculo","coglione","sesso","violenza","fotze","wichser","arschloch","schwanz","muschi","ficken","scheiße","vergewaltigung","hure","nutte","titten","schwul","puta","caralho","fodase","pica","cu","bosta","violar","foder","buceta","porra","chupar","vagabunda","nsfw","milf","bdsm","hentai","sexo","guro","snuff","gore","lolicon","shota","drugs","4chan","gore","loli"];
+    const normalizedText = text.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"");
+    const words = normalizedText.split(/\s+/).filter(word => word.length > 2);
+    for (const word of words) {
+        if (forbiddenWords.includes(word)) {
+            return word;
+        }
+    }
+    return null;
+}
+
+// === 🚀 FONCTION DE COMPRESSION D'IMAGE (Mise à jour) ===
+async function compressImageIfNeeded(file) {
+    if (!file) return { file: null, compressed: false };
+    
+    // Vérifie si l'image dépasse la taille MIN_SIZE_TO_COMPRESS_MB (1 Mo)
+    if (file.size > MIN_SIZE_TO_COMPRESS_MB * 1024 * 1024) {
+        
+        const options = {
+            maxSizeMB: TARGET_SIZE_MB,     // Nouvelle cible : 0.7 Mo
+            maxWidthOrHeight: 1920,       
+            useWebWorker: true
+        };
+
+        try {
+            const compressedFile = await imageCompression(file, options);
+            return { file: compressedFile, compressed: true, originalSize: file.size }; // Ajout du statut de compression
+        } catch (error) {
+            console.error("Erreur lors de la compression :", error);
+            return { file: file, compressed: false, originalSize: file.size }; 
+        }
+    }
+    
+    // Si l'image fait moins de 1 Mo
+    return { file: file, compressed: false, originalSize: file.size };
+}
+
+// === Envoi du formulaire (Mise à jour pour le feedback) ===
+btn.addEventListener('click', async ()=>{
+  let title = titleInput.value.trim();
+  let description = descInput.value.trim();
+  const jsonFile = document.getElementById("jsonFile").files[0];
+  
+  // Récupération des fichiers bruts
+  const rawImg1 = document.getElementById("image1").files[0];
+  const rawImg2 = document.getElementById("image2").files[0];
+  const rawImg3 = document.getElementById("image3").files[0];
+
+  // --- VÉRIFICATIONS BASIQUES (Inchagnées) ---
+  if(!title || !jsonFile){
+    msg.style.color = "#f44336";
+    msg.textContent = "Veuillez fournir un titre et un fichier JSON.";
+    return;
+  }
+  if(!rawImg1 && !rawImg2 && !rawImg3){
+    msg.style.color = "#f44336";
+    msg.textContent = "Vous devez ajouter au moins une image.";
+    return;
+  }
+  if (title.length > 10 || description.length > 100) {
+    msg.style.color = "#f44336";
+    msg.textContent = "Erreur de taille (titre max 10, description max 100).";
+    return;
+  }
+
+  // --- VÉRIFICATION MOTS INTERDITS (Inchagnée) ---
+  const forbiddenTitle = checkForbiddenWords(title);
+  const forbiddenDesc = checkForbiddenWords(description);
+
+  if (forbiddenTitle) {
+      msg.style.color = "#f44336";
+      msg.textContent = `Titre refusé : Le mot "${forbiddenTitle}" n'est pas autorisé.`;
+      return;
+  }
+  
+  if (forbiddenDesc) {
+      msg.style.color = "#f44336";
+      msg.textContent = `Description refusée : Le mot "${forbiddenDesc}" n'est pas autorisé.`;
+      return;
+  }
+
+  // --- COMPRESSION DES IMAGES (Si nécessaire) ---
+  msg.style.color = "#ffa500"; 
+  msg.textContent = "Analyse des images et compression (si > 1Mo) en cours...";
+  btn.disabled = true; // Désactiver le bouton pendant le traitement
+
+  let compressionOccurred = false;
+
+  // On compresse les images une par une et on récupère le résultat
+  const result1 = await compressImageIfNeeded(rawImg1);
+  const result2 = await compressImageIfNeeded(rawImg2);
+  const result3 = await compressImageIfNeeded(rawImg3);
+  
+  if (result1.compressed || result2.compressed || result3.compressed) {
+      compressionOccurred = true;
+  }
+
+  // --- CRÉATION DU FORM DATA ---
+  const formData = new FormData();
+  formData.append("title", title);
+  formData.append("description", description);
+  formData.append("jsonFile", jsonFile);
+  if(result1.file) formData.append("image1", result1.file);
+  if(result2.file) formData.append("image2", result2.file);
+  if(result3.file) formData.append("image3", result3.file);
+
+  // --- MESSAGE DE CONFIRMATION AVANT L'ENVOI ---
+  if (compressionOccurred) {
+      msg.textContent = "✅ Images compressées à 0.7 Mo max. Envoi des données...";
+      msg.style.color = "#4caf50";
+  } else {
+      msg.textContent = "Envoi des données au serveur...";
+      msg.style.color = "#fff";
+  }
+  
+
+  try{
+    const res = await fetch(`${API_URL}/publish`, {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${user.token}` },
+      body: formData
+    });
+    const data = await res.json();
+    btn.disabled = false; // Réactiver le bouton après la tentative d'envoi
+
+    if(data.success){
+      msg.style.color = "#4caf50";
+      msg.textContent = "Niveau publié avec succès !";
+      document.getElementById('form-publish').reset();
+      titleWarn.textContent = "";
+      descWarn.textContent = "";
+    } else {
+      msg.style.color = "#f44336";
+      msg.textContent = data.message || "Erreur lors de la publication";
+    }
+  } catch(err){
+    console.error(err);
+    msg.style.color = "#f44336";
+    msg.textContent = "Erreur serveur";
+    btn.disabled = false; // Réactiver en cas d'erreur
+  }
+});
+</script>
+
+</body>
+</html>
