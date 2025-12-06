@@ -1,1 +1,21 @@
-<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Inscription</title><link rel="stylesheet" href="style.css"></head><body><h1>Inscription</h1><form id="form-register"><input type="text" id="username" placeholder="Nom d'utilisateur" required><input type="password" id="password" placeholder="Mot de passe" required><button type="submit">S'inscrire</button><p id="msg"></p></form><script type="module">import { API_URL } from "./script.js";const form = document.getElementById("form-register");const msg = document.getElementById("msg");form.addEventListener("submit",async e=>{e.preventDefault();const username = document.getElementById("username").value.trim();const password = document.getElementById("password").value;try{const res = await fetch(`${API_URL}/register`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username,password})});const data = await res.json();msg.textContent = data.message;if(data.success)setTimeout(()=>window.location.href="connexion.html",1000);}catch(err){msg.textContent = "Erreur serveur";console.error(err);}});</script></body></html>
+<!doctypehtml><html lang=fr><meta charset=UTF-8><meta content="width=device-width,initial-scale=1"name=viewport><title>Inscription</title><link href=style.css rel=stylesheet><style>main{display:flex;justify-content:center;align-items:center;min-height:80vh;flex-direction:column}.auth-container{max-width:400px;background:#1e1e1e;padding:30px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.7);width:100%;text-align:center}.auth-container h1{color:orange;margin-bottom:25px}.auth-container input{background:#2c2c2c;color:#eee;border:1px solid #444;margin-bottom:15px;transition:border-color .2s}.auth-container input:focus{border-color:#00d0ff}.auth-container button{background:#4caf50;color:#fff;font-weight:700;padding:12px;margin-top:10px}.auth-container button:hover{background:#45a049;transform:translateY(-1px)}#msg{margin-top:15px;font-weight:700;color:#f44336}</style><header><button onclick='location.href="index.html"'>⬅ Accueil</button></header><main><div class=auth-container><h1>Inscription</h1><form id=form-register><input id=username placeholder="Nom d'utilisateur"required> <input id=password placeholder="Mot de passe"required type=password> <button type=submit>S'inscrire</button><p id=msg></form></div></main><script type=module>import { API_URL } from "./script.js";
+        const form = document.getElementById("form-register");
+        const msg = document.getElementById("msg");
+        form.addEventListener("submit",async e=>{
+            e.preventDefault();
+            const username = document.getElementById("username").value.trim();
+            const password = document.getElementById("password").value;
+            try{
+                const res = await fetch(`${API_URL}/register`,{
+                    method:"POST",
+                    headers:{"Content-Type":"application/json"},
+                    body:JSON.stringify({username,password})
+                });
+                const data = await res.json();
+                msg.textContent = data.message;
+                if(data.success)setTimeout(()=>window.location.href="connexion.html",1000);
+            }catch(err){
+                msg.textContent = "Erreur serveur";
+                console.error(err);
+            }
+        });</script>
