@@ -98,6 +98,18 @@ async function loadLevels(searchTerm = "", sortOption = 'recent'){
             window.location.href = `utilisateur.html?username=${encodeURIComponent(level.creator)}`;
         });
         
+        // AFFICHAGE DE LA DATE DE PUBLICATION
+        const datePublished = document.createElement("p");
+        if (level.createdAt) {
+            const dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
+            datePublished.textContent = `Publié le : ${new Date(level.createdAt).toLocaleDateString('fr-FR', dateOptions)}`;
+        } else {
+            datePublished.textContent = `Publié le : Inconnu`;
+        }
+        datePublished.style.fontSize = '.85em';
+        datePublished.style.color = '#777';
+        // ------------------------------------------
+
         const downloads = document.createElement("p");
         downloads.textContent = `Téléchargements : ${level.downloads || 0}`; 
         downloads.style.color = '#ff9800'; 
@@ -115,6 +127,7 @@ async function loadLevels(searchTerm = "", sortOption = 'recent'){
         
         contentDiv.appendChild(title);
         contentDiv.appendChild(creator);
+        contentDiv.appendChild(datePublished); 
         contentDiv.appendChild(downloads); 
         contentDiv.appendChild(desc);
         contentDiv.appendChild(btnDownload);

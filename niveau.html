@@ -1,4 +1,22 @@
-<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>BECT - Niveau</title><link rel="stylesheet" href="style.css"><style>#level-container{max-width:1000px;margin:40px auto;padding:40px;background:#1f1f1f;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,.5);color:#f0f0f0}#level-title{color:#ffa500;font-size:2.5em;margin-bottom:5px;border-bottom:2px solid #333;padding-bottom:10px}#level-creator{font-size:1.1em;margin-bottom:10px;color:#ccc}#level-downloads-info{font-size:1.1em;margin-bottom:20px;color:#00d0ff;font-weight:bold}#level-description{font-size:1.1em;margin-bottom:30px;padding:15px;background:#2a2a2a;border-left:5px solid #ffa500;border-radius:5px}#level-images{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:15px;margin-bottom:30px}#level-images img{width:100%;height:200px;object-fit:cover;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,.3);transition:transform .3s ease}#level-images img:hover{transform:scale(1.02)}#btn-download-json{width:100%;padding:15px;font-size:1.2em;background:#0078ff;color:#fff;border:none;border-radius:8px;cursor:pointer;transition:background .3s ease}#btn-download-json:hover{background:#0059c9}</style></head><body><header><div id="user-info" style="display:none;"><span id="username-display" style="cursor:pointer;"></span><button id="btn-settings" style="display:none;">Paramètres</button><button id="btn-logout">Déconnexion</button></div><div><button id="btn-login">Connexion</button><button id="btn-register">Inscription</button><button id="btn-publish" style="display:none;">Publier</button><button id="btn-admin" style="display:none;">Admin</button></div></header><main><div id="level-container"><h1 id="level-title">Chargement...</h1><p id="level-creator"></p>
+<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>BECT - Niveau</title><link rel="stylesheet" href="style.css"><style>#level-container{max-width:1000px;margin:40px auto;padding:40px;background:#1f1f1f;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,.5);color:#f0f0f0}#level-title{color:#ffa500;font-size:2.5em;margin-bottom:5px;border-bottom:2px solid #333;padding-bottom:10px}#level-creator{font-size:1.1em;margin-bottom:10px;color:#ccc}#level-date-published{font-size:.9em;color:#777;margin-bottom:15px}#level-downloads-info{font-size:1.1em;margin-bottom:20px;color:#00d0ff;font-weight:bold}#level-description{font-size:1.1em;margin-bottom:30px;padding:15px;background:#2a2a2a;border-left:5px solid #ffa500;border-radius:5px}#level-images{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:15px;margin-bottom:30px}#level-images img{width:100%;height:200px;object-fit:cover;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,.3);transition:transform .3s ease}#level-images img:hover{transform:scale(1.02)}#btn-download-json{width:100%;padding:15px;font-size:1.2em;background:#0078ff;color:#fff;border:none;border-radius:8px;cursor:pointer;transition:background .3s ease}#btn-download-json:hover{background:#0059c9}
+/* STYLE POUR LE BOUTON RETOUR */
+#btn-back {
+    padding: 10px 15px;
+    font-size: 1em;
+    background: #555;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-bottom: 20px;
+    transition: background .3s ease;
+}
+#btn-back:hover {
+    background: #777;
+}</style></head><body><header><div id="user-info" style="display:none;"><span id="username-display" style="cursor:pointer;"></span><button id="btn-settings" style="display:none;">Paramètres</button><button id="btn-logout">Déconnexion</button></div><div><button id="btn-login">Connexion</button><button id="btn-register">Inscription</button><button id="btn-publish" style="display:none;">Publier</button><button id="btn-admin" style="display:none;">Admin</button></div></header><main>
+<button id="btn-back">← Retour</button>
+<div id="level-container"><h1 id="level-title">Chargement...</h1><p id="level-creator"></p>
+<p id="level-date-published"></p>
 <p id="level-downloads-info">Téléchargements : <span id="downloads-count">...</span></p>
 <p id="level-description"></p><h2>Galerie d'Images</h2><div id="level-images"></div><button id="btn-download-json">Télécharger Fichier JSON</button></div></main><script type="module" src="script.js"></script><script type="module">import { API_URL, updateHeader } from './script.js';
 
@@ -21,6 +39,12 @@ async function loadLevel(){
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
     const downloadButton = document.getElementById("btn-download-json"); 
+
+    // LOGIQUE DU BOUTON RETOUR
+    document.getElementById("btn-back").addEventListener("click", () => {
+        window.history.back(); // Retourne à la page précédente dans l'historique
+    });
+    // -------------------------
 
     if(!id)return document.getElementById("level-title").textContent = "Niveau introuvable.";
 
@@ -46,6 +70,18 @@ async function loadLevel(){
         creatorP.querySelector(".creator-name").addEventListener("click",()=>{
             window.location.href = `utilisateur.html?username=${encodeURIComponent(level.creator)}`;
         });
+        
+        // AFFICHAGE DE LA DATE DE PUBLICATION
+        const datePublishedElement = document.getElementById("level-date-published");
+        if (level.createdAt) {
+            // Format plus complet pour la page de détail
+            const dateOptions = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+            datePublishedElement.textContent = `Publié le : ${new Date(level.createdAt).toLocaleDateString('fr-FR', dateOptions)}`;
+        } else {
+            datePublishedElement.textContent = `Publié le : Inconnu`;
+        }
+        // ------------------------------------
+
         document.getElementById("level-description").textContent = level.description || "Aucune description fournie.";
         
         const imagesContainer = document.getElementById("level-images");
@@ -65,8 +101,10 @@ async function loadLevel(){
         downloadButton.onclick = async()=>{
             if(!level.jsonUrl)return alert("Fichier JSON non trouvé.");
             
+            // 1. Incrémente le compteur
             incrementDownloadCounter(id); 
 
+            // 2. Lance le téléchargement
             try{
                 const response = await fetch(level.jsonUrl);
                 if(!response.ok)throw new Error(`Erreur lors du téléchargement: ${response.status}`);
