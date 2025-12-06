@@ -1,1 +1,95 @@
-<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>BECT - Niveau</title><link rel="stylesheet" href="style.css"><style>#level-container{max-width:1000px;margin:40px auto;padding:40px;background:#1f1f1f;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,.5);color:#f0f0f0}#level-title{color:#ffa500;font-size:2.5em;margin-bottom:5px;border-bottom:2px solid #333;padding-bottom:10px}#level-creator{font-size:1.1em;margin-bottom:20px;color:#ccc}#level-description{font-size:1.1em;margin-bottom:30px;padding:15px;background:#2a2a2a;border-left:5px solid #ffa500;border-radius:5px}#level-images{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:15px;margin-bottom:30px}#level-images img{width:100%;height:200px;object-fit:cover;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,.3);transition:transform .3s ease}#level-images img:hover{transform:scale(1.02)}#btn-download-json{width:100%;padding:15px;font-size:1.2em;background:#0078ff;color:#fff;border:none;border-radius:8px;cursor:pointer;transition:background .3s ease}#btn-download-json:hover{background:#0059c9}</style></head><body><header><div id="user-info" style="display:none;"><span id="username-display" style="cursor:pointer;"></span><button id="btn-settings" style="display:none;">Paramètres</button><button id="btn-logout">Déconnexion</button></div><div><button id="btn-login">Connexion</button><button id="btn-register">Inscription</button><button id="btn-publish" style="display:none;">Publier</button><button id="btn-admin" style="display:none;">Admin</button></div></header><main><div id="level-container"><h1 id="level-title">Chargement...</h1><p id="level-creator"></p><p id="level-description"></p><h2>Galerie d'Images</h2><div id="level-images"></div><button id="btn-download-json">Télécharger Fichier JSON</button></div></main><script type="module" src="script.js"></script><script type="module">import { API_URL, updateHeader } from './script.js';async function loadLevel(){updateHeader();const params = new URLSearchParams(window.location.search);const id = params.get("id");if(!id)return document.getElementById("level-title").textContent = "Niveau introuvable.";try{const res = await fetch(`${API_URL}/levels/${id}`);if(!res.ok){if(res.status === 404){return document.getElementById("level-title").textContent = "Niveau introuvable (ID inconnu).";}throw new Error(`Erreur HTTP: ${res.status}`);}const data = await res.json();const level = data.level;if(!level)return document.getElementById("level-title").textContent = "Niveau introuvable.";document.getElementById("level-title").textContent = level.title;const creatorP = document.getElementById("level-creator");creatorP.innerHTML = `Créé par : <span class="creator-name">${level.creator}</span>`;creatorP.querySelector(".creator-name").addEventListener("click",()=>{window.location.href = `utilisateur.html?username=${encodeURIComponent(level.creator)}`;});document.getElementById("level-description").textContent = level.description || "Aucune description fournie.";const imagesContainer = document.getElementById("level-images");imagesContainer.innerHTML = "";if(level.images && level.images.length > 0){(level.images || []).forEach(url=>{const img = document.createElement("img");img.src = url;img.alt = `Capture d'écran de ${level.title}`;img.onerror = ()=> img.src="https://via.placeholder.com/280x200?text=Image+introuvable";imagesContainer.appendChild(img);});}else{imagesContainer.innerHTML = "<p style='color:#777; font-style:italic;'>Aucune image fournie pour ce niveau.</p>";}document.getElementById("btn-download-json").onclick = async()=>{if(!level.jsonUrl)return alert("Fichier JSON non trouvé.");try{const response = await fetch(level.jsonUrl);if(!response.ok)throw new Error(`Erreur lors du téléchargement: ${response.status}`);const blob = await response.blob();const url = URL.createObjectURL(blob);const a = document.createElement("a");a.href = url;a.download = `${level.title}.json`;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);}catch(error){console.error('Download error:',error);alert("Erreur lors du téléchargement du fichier.");}}}catch(err){console.error(err);document.getElementById("level-title").textContent = "Erreur de connexion au serveur.";}}loadLevel();</script></body></html>
+<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>BECT - Niveau</title><link rel="stylesheet" href="style.css"><style>#level-container{max-width:1000px;margin:40px auto;padding:40px;background:#1f1f1f;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,.5);color:#f0f0f0}#level-title{color:#ffa500;font-size:2.5em;margin-bottom:5px;border-bottom:2px solid #333;padding-bottom:10px}#level-creator{font-size:1.1em;margin-bottom:10px;color:#ccc}#level-downloads-info{font-size:1.1em;margin-bottom:20px;color:#00d0ff;font-weight:bold}#level-description{font-size:1.1em;margin-bottom:30px;padding:15px;background:#2a2a2a;border-left:5px solid #ffa500;border-radius:5px}#level-images{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:15px;margin-bottom:30px}#level-images img{width:100%;height:200px;object-fit:cover;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,.3);transition:transform .3s ease}#level-images img:hover{transform:scale(1.02)}#btn-download-json{width:100%;padding:15px;font-size:1.2em;background:#0078ff;color:#fff;border:none;border-radius:8px;cursor:pointer;transition:background .3s ease}#btn-download-json:hover{background:#0059c9}</style></head><body><header><div id="user-info" style="display:none;"><span id="username-display" style="cursor:pointer;"></span><button id="btn-settings" style="display:none;">Paramètres</button><button id="btn-logout">Déconnexion</button></div><div><button id="btn-login">Connexion</button><button id="btn-register">Inscription</button><button id="btn-publish" style="display:none;">Publier</button><button id="btn-admin" style="display:none;">Admin</button></div></header><main><div id="level-container"><h1 id="level-title">Chargement...</h1><p id="level-creator"></p>
+<p id="level-downloads-info">Téléchargements : <span id="downloads-count">...</span></p>
+<p id="level-description"></p><h2>Galerie d'Images</h2><div id="level-images"></div><button id="btn-download-json">Télécharger Fichier JSON</button></div></main><script type="module" src="script.js"></script><script type="module">import { API_URL, updateHeader } from './script.js';
+
+async function incrementDownloadCounter(id) {
+    try {
+        await fetch(`${API_URL}/levels/${id}/download`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const countElement = document.getElementById('downloads-count');
+        const currentCount = parseInt(countElement.textContent) || 0;
+        countElement.textContent = currentCount + 1;
+    } catch (err) {
+        console.error("Erreur lors de l'incrémentation du téléchargement:", err);
+    }
+}
+
+async function loadLevel(){
+    updateHeader();
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    const downloadButton = document.getElementById("btn-download-json"); 
+
+    if(!id)return document.getElementById("level-title").textContent = "Niveau introuvable.";
+
+    try{
+        const res = await fetch(`${API_URL}/levels/${id}`);
+        if(!res.ok){
+            if(res.status === 404){
+                return document.getElementById("level-title").textContent = "Niveau introuvable (ID inconnu).";
+            }
+            throw new Error(`Erreur HTTP: ${res.status}`);
+        }
+        
+        const data = await res.json();
+        const level = data.level;
+        
+        if(!level)return document.getElementById("level-title").textContent = "Niveau introuvable.";
+        
+        document.getElementById("level-title").textContent = level.title;
+        document.getElementById("downloads-count").textContent = level.downloads || 0; 
+        
+        const creatorP = document.getElementById("level-creator");
+        creatorP.innerHTML = `Créé par : <span class="creator-name">${level.creator}</span>`;
+        creatorP.querySelector(".creator-name").addEventListener("click",()=>{
+            window.location.href = `utilisateur.html?username=${encodeURIComponent(level.creator)}`;
+        });
+        document.getElementById("level-description").textContent = level.description || "Aucune description fournie.";
+        
+        const imagesContainer = document.getElementById("level-images");
+        imagesContainer.innerHTML = "";
+        if(level.images && level.images.length > 0){
+            (level.images || []).forEach(url=>{
+                const img = document.createElement("img");
+                img.src = url;
+                img.alt = `Capture d'écran de ${level.title}`;
+                img.onerror = ()=> img.src="https://via.placeholder.com/280x200?text=Image+introuvable";
+                imagesContainer.appendChild(img);
+            });
+        }else{
+            imagesContainer.innerHTML = "<p style='color:#777; font-style:italic;'>Aucune image fournie pour ce niveau.</p>";
+        }
+
+        downloadButton.onclick = async()=>{
+            if(!level.jsonUrl)return alert("Fichier JSON non trouvé.");
+            
+            incrementDownloadCounter(id); 
+
+            try{
+                const response = await fetch(level.jsonUrl);
+                if(!response.ok)throw new Error(`Erreur lors du téléchargement: ${response.status}`);
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `${level.title}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }catch(error){
+                console.error('Download error:',error);
+                alert("Erreur lors du téléchargement du fichier.");
+            }
+        };
+
+    }catch(err){
+        console.error(err);
+        document.getElementById("level-title").textContent = "Erreur de connexion au serveur.";
+    }
+}
+
+loadLevel();
+</script></body></html>

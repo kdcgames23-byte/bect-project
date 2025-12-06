@@ -1,1 +1,147 @@
-<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>BECT - Accueil</title><link rel="stylesheet" href="style.css"><style>#search-results{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:30px;padding:20px}.result-item{background:#1e1e1e;color:#f0f0f0;padding:0;border-radius:12px;overflow:hidden;box-shadow:0 8px 15px rgba(0,0,0,.5);transition:transform .2s ease,box-shadow .2s ease}.result-item:hover{transform:translateY(-5px);box-shadow:0 12px 20px rgba(0,0,0,.7)}.level-content{padding:15px;display:flex;flex-direction:column;gap:10px}.level-content h3{color:#00d0ff;margin:0;font-size:1.2em;cursor:pointer}.level-content p{margin:0;font-size:.9em;color:#b0b0b0}.creator-name{font-weight:700;color:#4caf50!important;cursor:pointer}.slideshow{width:100%;height:200px;overflow:hidden;position:relative}.slideshow img{width:100%;height:200px;object-fit:cover;position:absolute;opacity:0;transition:opacity .8s ease-in-out}.slideshow img.active{opacity:1}.download-btn{background:#0078ff;color:#fff;border:none;padding:10px 15px;border-radius:6px;cursor:pointer;font-weight:700;letter-spacing:.5px;transition:background .2s ease;margin-top:5px}.download-btn:hover{background:#0059c9}</style></head><body><header><div id="user-info"><span id="username-display"></span><button id="btn-settings">Paramètres</button><button id="btn-logout">Déconnexion</button></div><div><button id="btn-login">Connexion</button><button id="btn-register">Inscription</button><button id="btn-publish">Publier</button><button id="btn-admin">Admin</button></div><div><input type="text" id="search-input" placeholder="Rechercher un niveau..."><button id="btn-search">🔍</button></div></header><main><div id="search-results"></div></main><script type="module" src="script.js"></script><script type="module">import { API_URL } from './script.js';let allLevels = [];async function loadLevels(searchTerm = ""){const container = document.getElementById("search-results");if(allLevels.length === 0){container.innerHTML = "<p>Chargement des niveaux...</p>";try{const res = await fetch(`${API_URL}/levels`);const data = await res.json();if(!data.success){container.innerHTML = "<p>Erreur lors du chargement des données.</p>";return;}allLevels = data.levels;}catch(err){console.error(err);container.innerHTML = "<p>Erreur serveur ou de connexion.</p>";return;}}if(allLevels.length === 0){container.innerHTML = "<p>Aucun niveau publié</p>";return;}const lowerSearchTerm = searchTerm.toLowerCase().trim();const filteredLevels = allLevels.filter(level=>{if(!lowerSearchTerm)return true;const matchesTitle = level.title.toLowerCase().includes(lowerSearchTerm);const matchesCreator = level.creator.toLowerCase().includes(lowerSearchTerm);return matchesTitle || matchesCreator;});container.innerHTML = "";if(filteredLevels.length === 0 && lowerSearchTerm){container.innerHTML = `<p>Aucun résultat trouvé pour "${searchTerm}".</p>`;return;}filteredLevels.forEach(level=>{const div = document.createElement("div");div.classList.add("result-item");const slideDiv = document.createElement("div");slideDiv.classList.add("slideshow");if(level.images && level.images.length > 0){level.images.forEach((imgUrl,index)=>{const img = document.createElement("img");img.src = imgUrl;if(index === 0)img.classList.add("active");slideDiv.appendChild(img);});if(level.images.length > 1){let current = 0;setInterval(()=>{const imgs = slideDiv.querySelectorAll("img");imgs[current].classList.remove("active");current = (current + 1) % imgs.length;imgs[current].classList.add("active");},3000);}}div.appendChild(slideDiv);const contentDiv = document.createElement("div");contentDiv.classList.add("level-content");const title = document.createElement("h3");title.textContent = level.title;title.addEventListener("click",()=>{window.location.href = `niveau.html?id=${encodeURIComponent(level._id)}`;});const creator = document.createElement("p");creator.innerHTML = `Créé par : <span class="creator-name">${level.creator}</span>`;creator.querySelector(".creator-name").addEventListener("click",()=>{window.location.href = `utilisateur.html?username=${encodeURIComponent(level.creator)}`;});const desc = document.createElement("p");desc.textContent = level.description || "Aucune description.";const btnDownload = document.createElement("button");btnDownload.textContent = "Télécharger";btnDownload.classList.add("download-btn");btnDownload.addEventListener("click",async()=>{if(!level.jsonUrl)return alert("Fichier JSON non trouvé.");try{const response = await fetch(level.jsonUrl);if(!response.ok)throw new Error(`Erreur lors du téléchargement: ${response.status}`);const blob = await response.blob();const url = URL.createObjectURL(blob);const a = document.createElement("a");a.href = url;a.download = `${level.title}.json`;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);}catch(error){console.error('Download error:',error);alert("Erreur lors du téléchargement du fichier.");}});contentDiv.appendChild(title);contentDiv.appendChild(creator);contentDiv.appendChild(desc);contentDiv.appendChild(btnDownload);div.appendChild(contentDiv);container.appendChild(div);});}const searchInput = document.getElementById("search-input");const btnSearch = document.getElementById("btn-search");if(btnSearch){btnSearch.addEventListener("click",()=>{loadLevels(searchInput.value);});}if(searchInput){searchInput.addEventListener("keypress",(e)=>{if(e.key === 'Enter'){loadLevels(searchInput.value);}});};loadLevels();</script></body></html>
+<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>BECT - Accueil</title><link rel="stylesheet" href="style.css"><style>#search-results{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:30px;padding:20px}.result-item{background:#1e1e1e;color:#f0f0f0;padding:0;border-radius:12px;overflow:hidden;box-shadow:0 8px 15px rgba(0,0,0,.5);transition:transform .2s ease,box-shadow .2s ease}.result-item:hover{transform:translateY(-5px);box-shadow:0 12px 20px rgba(0,0,0,.7)}.level-content{padding:15px;display:flex;flex-direction:column;gap:10px}.level-content h3{color:#00d0ff;margin:0;font-size:1.2em;cursor:pointer}.level-content p{margin:0;font-size:.9em;color:#b0b0b0}.creator-name{font-weight:700;color:#4caf50!important;cursor:pointer}.slideshow{width:100%;height:200px;overflow:hidden;position:relative}.slideshow img{width:100%;height:200px;object-fit:cover;position:absolute;opacity:0;transition:opacity .8s ease-in-out}.slideshow img.active{opacity:1}.download-btn{background:#0078ff;color:#fff;border:none;padding:10px 15px;border-radius:6px;cursor:pointer;font-weight:700;letter-spacing:.5px;transition:background .2s ease;margin-top:5px}.download-btn:hover{background:#0059c9}
+#filter-bar { display: flex; justify-content: flex-end; padding: 10px 20px; background: #2a2a2a; border-radius: 8px; margin-bottom: 20px; align-items: center; gap: 10px; }
+#sort-filter { padding: 8px; border-radius: 6px; border: 1px solid #444; background: #333; color: white; }
+</style></head><body><header><div id="user-info"><span id="username-display"></span><button id="btn-settings">Paramètres</button><button id="btn-logout">Déconnexion</button></div><div><button id="btn-login">Connexion</button><button id="btn-register">Inscription</button><button id="btn-publish">Publier</button><button id="btn-admin">Admin</button></div><div><input type="text" id="search-input" placeholder="Rechercher un niveau..."><button id="btn-search">🔍</button></div></header><main>
+<div id="filter-bar">
+    <label for="sort-filter">Trier par :</label>
+    <select id="sort-filter">
+        <option value="recent">Publié récemment</option>
+        <option value="ancient">Publié anciennement</option>
+        <option value="downloads_desc">Le plus téléchargé</option>
+        <option value="downloads_asc">Le moins téléchargé</option>
+    </select>
+</div>
+<div id="search-results"></div></main><script type="module" src="script.js"></script><script type="module">import { API_URL } from './script.js';
+let allLevels = [];
+const sortFilter = document.getElementById('sort-filter'); 
+
+async function loadLevels(searchTerm = "", sortOption = 'recent'){
+    const container = document.getElementById("search-results");
+    container.innerHTML = "<p>Chargement des niveaux...</p>";
+    
+    const fetchUrl = `${API_URL}/levels?sort=${sortOption}`;
+    
+    try{
+        const res = await fetch(fetchUrl);
+        const data = await res.json();
+        
+        if(!data.success){
+            container.innerHTML = "<p>Erreur lors du chargement des données.</p>";
+            return;
+        }
+        
+        allLevels = data.levels;
+    }
+    catch(err){
+        console.error(err);
+        container.innerHTML = "<p>Erreur serveur ou de connexion.</p>";
+        return;
+    }
+
+    if(allLevels.length === 0){
+        container.innerHTML = "<p>Aucun niveau publié</p>";
+        return;
+    }
+    
+    const lowerSearchTerm = searchTerm.toLowerCase().trim();
+    const filteredLevels = allLevels.filter(level=>{
+        if(!lowerSearchTerm)return true;
+        const matchesTitle = level.title.toLowerCase().includes(lowerSearchTerm);
+        const matchesCreator = level.creator.toLowerCase().includes(lowerSearchTerm);
+        return matchesTitle || matchesCreator;
+    });
+    
+    container.innerHTML = "";
+    
+    if(filteredLevels.length === 0 && lowerSearchTerm){
+        container.innerHTML = `<p>Aucun résultat trouvé pour "${searchTerm}".</p>`;
+        return;
+    }
+    
+    filteredLevels.forEach(level=>{
+        const div = document.createElement("div");
+        div.classList.add("result-item");
+        
+        const slideDiv = document.createElement("div");
+        slideDiv.classList.add("slideshow");
+        if(level.images && level.images.length > 0){
+            level.images.forEach((imgUrl,index)=>{
+                const img = document.createElement("img");
+                img.src = imgUrl;
+                if(index === 0)img.classList.add("active");
+                slideDiv.appendChild(img);
+            });
+            if(level.images.length > 1){
+                let current = 0;
+                setInterval(()=>{
+                    const imgs = slideDiv.querySelectorAll("img");
+                    imgs[current].classList.remove("active");
+                    current = (current + 1) % imgs.length;
+                    imgs[current].classList.add("active");
+                },3000);
+            }
+        }
+        div.appendChild(slideDiv);
+        
+        const contentDiv = document.createElement("div");
+        contentDiv.classList.add("level-content");
+        
+        const title = document.createElement("h3");
+        title.textContent = level.title;
+        title.addEventListener("click",()=>{
+            window.location.href = `niveau.html?id=${encodeURIComponent(level._id)}`;
+        });
+        
+        const creator = document.createElement("p");
+        creator.innerHTML = `Créé par : <span class="creator-name">${level.creator}</span>`;
+        creator.querySelector(".creator-name").addEventListener("click",()=>{
+            window.location.href = `utilisateur.html?username=${encodeURIComponent(level.creator)}`;
+        });
+        
+        const downloads = document.createElement("p");
+        downloads.textContent = `Téléchargements : ${level.downloads || 0}`; 
+        downloads.style.color = '#ff9800'; 
+
+        const desc = document.createElement("p");
+        desc.textContent = level.description || "Aucune description.";
+        
+        const btnDownload = document.createElement("button");
+        btnDownload.textContent = "Télécharger";
+        btnDownload.classList.add("download-btn");
+        
+        btnDownload.addEventListener("click",async()=>{
+            window.location.href = `niveau.html?id=${encodeURIComponent(level._id)}`;
+        });
+        
+        contentDiv.appendChild(title);
+        contentDiv.appendChild(creator);
+        contentDiv.appendChild(downloads); 
+        contentDiv.appendChild(desc);
+        contentDiv.appendChild(btnDownload);
+        div.appendChild(contentDiv);
+        container.appendChild(div);
+    });
+}
+
+sortFilter.addEventListener('change', () => {
+    loadLevels(document.getElementById("search-input").value, sortFilter.value);
+});
+
+const searchInput = document.getElementById("search-input");
+const btnSearch = document.getElementById("btn-search");
+if(btnSearch){
+    btnSearch.addEventListener("click",()=>{
+        loadLevels(searchInput.value, sortFilter.value); 
+    });
+}
+if(searchInput){
+    searchInput.addEventListener("keypress",(e)=>{
+        if(e.key === 'Enter'){
+            loadLevels(searchInput.value, sortFilter.value); 
+        }
+    });
+};
+
+const initialSort = sortFilter.value || 'recent';
+loadLevels(searchInput.value, initialSort);
+</script></body></html>
